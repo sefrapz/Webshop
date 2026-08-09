@@ -53,3 +53,15 @@ Kassan är förberedd för Klarna Checkout: ersätt demo-logiken i
 `orders`-API från en backend och montera deras checkout-snippet i
 betalningskortet. Kräver Klarna-merchantkonto och serverdel för
 API-nycklarna.
+
+## Uppdatera sajten
+
+Shoppen ligger live via GitHub Pages och deployas från branchen `gh-pages`:
+
+```bash
+# gör ändringar på main, pusha, och spegla sedan till gh-pages:
+git checkout gh-pages
+git merge main
+git push origin gh-pages
+git checkout main
+```
