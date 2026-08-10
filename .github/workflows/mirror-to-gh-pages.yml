@@ -1,0 +1,29 @@
+name: Spegla main till gh-pages
+
+# Pages på det här repot bygger från branchen gh-pages. Den här workflowen
+# kopierar main dit vid varje push, så att en ändring gjord var som helst
+# — inklusive från mobilen — går live utan lokala git-kommandon.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: mirror-gh-pages
+  cancel-in-progress: false
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Hämta hela historiken
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Spegla main till gh-pages
+        run: git push --force origin HEAD:refs/heads/gh-pages

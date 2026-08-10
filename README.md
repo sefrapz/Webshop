@@ -56,12 +56,32 @@ API-nycklarna.
 
 ## Uppdatera sajten
 
-Shoppen ligger live via GitHub Pages och deployas från branchen `gh-pages`:
+Shoppen ligger live på <https://sefrapz.github.io/Webshop/>. Pusha till `main`
+— inget mer. Workflowen `.github/workflows/mirror-to-gh-pages.yml` speglar
+`main` till `gh-pages`, som är den branch GitHub Pages bygger från, och sajten
+uppdateras inom någon minut.
+
+`gh-pages` är alltså en ren spegel och skrivs över vid varje push. Gör aldrig
+ändringar direkt där.
+
+## Utveckla från mobilen
+
+Projektet är satt upp för att skötas helt från telefonen via Claude Code på
+webben (Claude-appens Code-flik eller <https://claude.ai/code>). Sessionen kör
+i en molncontainer med repot klonat, så du behöver varken dator eller lokal
+git:
+
+- `CLAUDE.md` beskriver kodbasens konventioner, så varje ny session är
+  insatt direkt — du slipper förklara projektet på nytt.
+- Deployen är automatisk, så en ändring går live utan git-kommandon.
+- Skärmbilder gör att du kan se resultatet i chatten i stället för att läsa
+  en beskrivning av det:
 
 ```bash
-# gör ändringar på main, pusha, och spegla sedan till gh-pages:
-git checkout gh-pages
-git merge main
-git push origin gh-pages
-git checkout main
+node tools/shot.mjs '#/produkt/hoodie'          # en vy
+node tools/shot.mjs '#/' '#/kassa' --mobile     # flera vyer, mobilbredd
+node tools/shot.mjs '#/' --full                 # hela sidan, inte bara vyporten
 ```
+
+Bilderna hamnar i `.shots/` (gitignorerad). Chromium finns förinstallerat i
+sessionen — inget att installera.
