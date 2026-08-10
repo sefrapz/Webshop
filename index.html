@@ -18,13 +18,27 @@
         <a href="#/produkt/hoodie">Hoodie</a>
         <a href="#/produkt/longsleeve">Långärmat</a>
       </nav>
-      <button class="cart-btn" id="cartBtn" aria-label="Öppna varukorgen">
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M6 7h12l1.2 13H4.8L6 7z"/><path d="M9 9V6a3 3 0 0 1 6 0v3"/>
-        </svg>
-        <span class="cart-count" id="cartCount" hidden>0</span>
-      </button>
+      <div class="header-actions">
+        <button class="cart-btn" id="cartBtn" aria-label="Öppna varukorgen" aria-expanded="false" aria-controls="cartDrawer">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M6 7h12l1.2 13H4.8L6 7z"/><path d="M9 9V6a3 3 0 0 1 6 0v3"/>
+          </svg>
+          <span class="cart-count" id="cartCount" hidden>0</span>
+        </button>
+        <button class="nav-toggle" id="navToggle" aria-label="Öppna menyn" aria-expanded="false" aria-controls="mobileNav">
+          <span class="nav-toggle-bars" aria-hidden="true"><span></span><span></span><span></span></span>
+        </button>
+      </div>
     </div>
+    <nav class="mobile-nav" id="mobileNav" hidden>
+      <a href="#/produkt/tshirt">T-shirt</a>
+      <a href="#/produkt/hoodie">Hoodie</a>
+      <a href="#/produkt/longsleeve">Långärmad t-shirt</a>
+      <span class="mobile-nav-sep" aria-hidden="true"></span>
+      <a href="#/storleksguide">Storleksguide</a>
+      <a href="#/leverans">Leverans &amp; retur</a>
+      <a href="#/kontakt">Kontakta oss</a>
+    </nav>
   </header>
 
   <main id="app" class="app"></main>
@@ -43,9 +57,9 @@
       </div>
       <div class="footer-col">
         <h4>Kundservice</h4>
-        <a href="#/">Leverans &amp; retur</a>
-        <a href="#/">Storleksguide</a>
-        <a href="#/">Kontakta oss</a>
+        <a href="#/leverans">Leverans &amp; retur</a>
+        <a href="#/storleksguide">Storleksguide</a>
+        <a href="#/kontakt">Kontakta oss</a>
       </div>
       <div class="footer-col">
         <h4>Betalning</h4>
@@ -77,7 +91,13 @@
         </div>
         <button class="icon-btn" id="motifCloseBtn" aria-label="Stäng">✕</button>
       </div>
+      <div class="motif-search">
+        <input type="search" id="motifSearch" autocomplete="off"
+          placeholder="Sök motiv — t.ex. tiger, stjärna, berg" aria-label="Sök bland motiven">
+        <span class="motif-count" id="motifCount"></span>
+      </div>
       <div class="motif-grid" id="motifGrid"></div>
+      <p class="motif-empty" id="motifEmpty" hidden>Inga motiv matchar sökningen.</p>
     </div>
   </div>
 

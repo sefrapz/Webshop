@@ -24,9 +24,10 @@ npx http-server -p 8000 -c-1 .   # eller: python3 -m http.server 8000
 
 - **Inga moduler.** Allt är globala `const`/`function`. Ordningen i
   `index.html` spelar roll: `data.js` → `mockups.js` → `app.js`.
-- **Routern** är hash-baserad med fyra vyer: `#/`, `#/produkt/:id`, `#/kassa`,
-  `#/tack`. Varje vy skriver hela `#app` via `innerHTML` och kopplar sedan
-  events med `.onclick` direkt på elementen.
+- **Routern** är hash-baserad med sju vyer: `#/`, `#/produkt/:id`, `#/kassa`,
+  `#/tack`, `#/storleksguide`, `#/leverans`, `#/kontakt`. Varje vy skriver hela
+  `#app` via `innerHTML` och kopplar sedan events med `.onclick` direkt på
+  elementen. `route()` stänger mobilmenyn och motivmodalen vid varje byte.
 - **Mockuparna** returnerar SVG som sträng. Kroppen ritas tre gånger (färg,
   horisontell skugga, vertikal skugga) och gradienterna får unika id:n via
   `_uidCounter` — behåll det, annars krockar flera plagg på samma sida.
@@ -38,6 +39,19 @@ npx http-server -p 8000 -c-1 .   # eller: python3 -m http.server 8000
   motivval som ritar om hela sidan.
 - **Varukorgen** ligger i `localStorage` under `motiv-cart`. Rader slås ihop på
   nyckeln `produkt|färg|storlek|motiv|placering`.
+
+## Dialoger och tangentbord
+
+Varukorgs-drawern och motivmodalen delar samma mönster — följ det när du lägger
+till en ny dialog:
+
+- Escape stänger den översta öppna dialogen (motivmodal före varukorg före meny).
+- `trapFocus()` håller kvar tabbningen; `focusFirst()` flyttar in fokus.
+- Fokus går tillbaka till elementet som öppnade dialogen när den stängs.
+- `syncBodyScroll()` avgör om `body.no-scroll` ska sitta på — sätt den aldrig
+  direkt, då slåss dialogerna om `overflow`.
+- Val som är på/av (färg, storlek, placering, sida, motiv) ska ha `aria-pressed`
+  som uppdateras i takt med `.selected`-klassen.
 
 ## Konventioner
 

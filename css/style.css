@@ -37,6 +37,16 @@ svg svg { max-width: none; }
 a { color: inherit; text-decoration: none; }
 button { font-family: inherit; cursor: pointer; }
 
+/* Synligt fokus för tangentbord — men inte vid musklick. */
+:focus-visible {
+  outline: 3px solid #2f80c3;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Låser sidan bakom en öppen modal eller varukorg. */
+body.no-scroll { overflow: hidden; }
+
 .app { min-height: 62vh; }
 
 /* ------------------------- Header ------------------------- */
@@ -63,6 +73,39 @@ button { font-family: inherit; cursor: pointer; }
   transition: color .15s, border-color .15s;
 }
 .main-nav a:hover { color: var(--ink); border-color: var(--ink); }
+
+.header-actions { display: flex; align-items: center; gap: 4px; margin-left: auto; }
+
+/* Hamburgerknapp — visas bara på mobil. */
+.nav-toggle {
+  display: none; background: none; border: none; color: var(--ink);
+  width: 44px; height: 44px; border-radius: 50%; transition: background .15s;
+  align-items: center; justify-content: center;
+}
+.nav-toggle:hover { background: var(--surface-2); }
+.nav-toggle-bars { display: block; width: 20px; height: 14px; position: relative; }
+.nav-toggle-bars span {
+  position: absolute; left: 0; width: 100%; height: 2px; border-radius: 2px;
+  background: currentColor; transition: transform .2s, opacity .15s;
+}
+.nav-toggle-bars span:nth-child(1) { top: 0; }
+.nav-toggle-bars span:nth-child(2) { top: 6px; }
+.nav-toggle-bars span:nth-child(3) { top: 12px; }
+.nav-toggle.open .nav-toggle-bars span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+.nav-toggle.open .nav-toggle-bars span:nth-child(2) { opacity: 0; }
+.nav-toggle.open .nav-toggle-bars span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+.mobile-nav {
+  display: none; flex-direction: column;
+  border-top: 1px solid var(--line); background: var(--surface);
+  padding: 8px 20px 16px;
+}
+.mobile-nav a {
+  padding: 14px 4px; font-size: .95rem; font-weight: 700;
+  border-bottom: 1px solid var(--line);
+}
+.mobile-nav a:last-child { border-bottom: none; }
+.mobile-nav-sep { height: 10px; }
 
 .cart-btn {
   position: relative; background: none; border: none; color: var(--ink);
@@ -338,6 +381,27 @@ button { font-family: inherit; cursor: pointer; }
 }
 .icon-btn:hover { background: var(--surface-2); }
 
+.motif-search {
+  display: flex; align-items: center; gap: 14px;
+  padding: 16px 30px 0;
+}
+.motif-search input {
+  flex: 1; min-width: 0;
+  border: 1.5px solid var(--line); border-radius: 999px;
+  padding: 12px 18px; font-size: .92rem; font-family: inherit;
+  background: #fbfaf7; transition: border-color .15s;
+}
+.motif-search input:focus { outline: none; border-color: var(--ink); background: #fff; }
+.motif-search input::placeholder { color: #a3a09a; }
+.motif-count {
+  font-size: .76rem; font-weight: 700; color: var(--ink-soft);
+  letter-spacing: .04em; white-space: nowrap;
+}
+.motif-empty {
+  padding: 40px 30px 44px; text-align: center;
+  color: var(--ink-soft); font-size: .92rem;
+}
+
 .motif-grid {
   display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px;
   padding: 22px 30px 30px; overflow-y: auto;
@@ -438,7 +502,11 @@ button { font-family: inherit; cursor: pointer; }
   transition: border-color .15s;
 }
 .form-field input:focus { outline: none; border-color: var(--ink); background: #fff; }
-.form-field input.invalid { border-color: #c22b3d; }
+.form-field input.invalid { border-color: #c22b3d; background: #fdf6f7; }
+.form-field input.invalid:focus { border-color: #c22b3d; }
+.field-error {
+  font-size: .76rem; font-weight: 600; color: #c22b3d; line-height: 1.4;
+}
 
 .klarna-box {
   border: 2px solid var(--klarna); border-radius: var(--radius-sm);
@@ -535,6 +603,66 @@ button { font-family: inherit; cursor: pointer; }
   padding: 20px 28px; text-align: center; font-size: .78rem;
 }
 
+/* ------------------------- Informationssidor ------------------------- */
+
+.info-page { max-width: 900px; margin: 0 auto; padding: 40px 28px 90px; }
+.info-page h1 {
+  font-size: clamp(1.9rem, 4vw, 2.6rem); font-weight: 800;
+  letter-spacing: -.02em; margin-bottom: 14px;
+}
+.info-page p.lead {
+  color: var(--ink-soft); font-size: 1.02rem; max-width: 620px; margin-bottom: 26px;
+}
+.info-fine { font-size: .8rem; color: var(--ink-soft); margin-top: 14px; }
+
+.guide-tip {
+  background: var(--surface); border: 1px solid var(--line);
+  border-left: 4px solid var(--ink); border-radius: var(--radius-sm);
+  padding: 16px 20px; font-size: .9rem; color: var(--ink-soft); margin: 26px 0;
+}
+.guide-tip strong { display: block; color: var(--ink); margin-bottom: 4px; }
+
+.guide-block { margin-top: 32px; }
+.guide-block h2 { font-size: 1.15rem; font-weight: 800; margin-bottom: 12px; }
+
+/* Breda tabeller ska scrolla i sig själva, inte spränga sidan. */
+.table-scroll {
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--line); border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+.size-table { border-collapse: collapse; width: 100%; min-width: 320px; font-size: .88rem; }
+.size-table th, .size-table td {
+  padding: 11px 14px; text-align: left;
+  border-bottom: 1px solid var(--line); white-space: nowrap;
+}
+.size-table thead th {
+  font-size: .72rem; text-transform: uppercase; letter-spacing: .08em;
+  color: var(--ink-soft); background: var(--surface-2);
+}
+.size-table tbody th { font-weight: 800; }
+.size-table tbody tr:last-child th,
+.size-table tbody tr:last-child td { border-bottom: none; }
+
+.info-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 18px;
+}
+.info-card {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 24px;
+}
+.info-card h2 {
+  font-size: 1rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: .05em; margin-bottom: 14px;
+}
+.info-card p { font-size: .9rem; color: var(--ink-soft); }
+.info-card p + p { margin-top: 10px; }
+.info-card a { text-decoration: underline; }
+.info-list { font-size: .9rem; }
+.info-list dt { font-weight: 700; margin-top: 10px; }
+.info-list dt:first-of-type { margin-top: 0; }
+.info-list dd { color: var(--ink-soft); }
+
 /* ------------------------- Responsivt ------------------------- */
 
 @media (max-width: 1020px) {
@@ -545,13 +673,65 @@ button { font-family: inherit; cursor: pointer; }
   .steps-inner { grid-template-columns: 1fr 1fr; }
   .motif-grid { grid-template-columns: repeat(4, 1fr); }
 }
+
 @media (max-width: 720px) {
-  .category-grid { grid-template-columns: 1fr; }
+  /* Hamburgermeny ersätter nav-raden */
+  .header-inner { padding: 0 18px; height: 60px; gap: 12px; }
   .main-nav { display: none; }
-  .color-thumbs { grid-template-columns: repeat(4, 1fr); }
-  .placement-grid { grid-template-columns: 1fr; }
-  .form-grid { grid-template-columns: 1fr; }
-  .motif-grid { grid-template-columns: repeat(3, 1fr); }
+  .nav-toggle { display: inline-flex; }
+  .mobile-nav:not([hidden]) { display: flex; }
+
+  .hero { padding: 52px 20px 30px; }
+  .category-section { padding: 20px 20px 60px; }
+  .category-grid { grid-template-columns: 1fr; }
   .steps-inner { grid-template-columns: 1fr; }
   .footer-inner { grid-template-columns: 1fr 1fr; }
+
+  /* Produktsidan: reglagen över bilden i stället för ovanpå den */
+  .product-page { padding: 22px 18px 40px; }
+  .preview-stage {
+    padding: 16px; display: flex; flex-direction: column; align-items: center;
+  }
+  .side-toggle { position: static; order: 1; margin-bottom: 10px; }
+  .preview-badge { position: static; order: 2; margin-bottom: 12px; text-align: center; }
+  #previewSvg { order: 3; width: 100%; }
+  .color-thumbs { grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .placement-grid { grid-template-columns: 1fr; }
+
+  /* Träffytor som går att pricka med tummen */
+  .size-btn { min-width: 60px; padding: 13px 14px; font-size: .9rem; }
+  .qty-stepper button { width: 44px; height: 44px; }
+  .ci-qty button { width: 34px; height: 34px; }
+  .icon-btn { width: 42px; height: 42px; }
+
+  /* Köpknappen följer med i stället för att försvinna längst ner */
+  .addtocart-wrap {
+    position: sticky; bottom: 0; z-index: 20;
+    padding: 14px 0 10px; margin-top: 8px;
+    background: linear-gradient(to bottom, rgba(247, 245, 241, 0), var(--bg) 24%);
+  }
+
+  /* Varukorg och motivgalleri tar hela skärmen */
+  .cart-drawer { width: 100%; }
+  .modal-overlay { padding: 0; }
+  .modal { width: 100%; height: 100%; max-height: 100%; border-radius: 0; }
+  .modal-head { padding: 18px 18px 12px; }
+  .motif-search { padding: 14px 18px 0; }
+  .motif-grid { grid-template-columns: repeat(3, 1fr); padding: 16px 18px 26px; }
+
+  .checkout-page { padding: 30px 18px 70px; }
+  .checkout-card { padding: 22px 18px; }
+  .form-grid { grid-template-columns: 1fr; }
+  .info-page { padding: 30px 18px 70px; }
+  .info-card { padding: 20px 18px; }
+  /* Tabeller med tre kolumner ska rymmas utan att behöva svepas. */
+  .size-table { font-size: .84rem; }
+  .size-table th, .size-table td { padding: 10px 11px; }
+}
+
+@media (max-width: 420px) {
+  .motif-grid { grid-template-columns: repeat(2, 1fr); }
+  .color-thumbs { grid-template-columns: repeat(3, 1fr); }
+  .footer-inner { grid-template-columns: 1fr; }
+  .motif-search { flex-wrap: wrap; }
 }

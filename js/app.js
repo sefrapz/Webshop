@@ -97,11 +97,103 @@ function renderCartDrawer() {
 
 const drawer = document.getElementById('cartDrawer');
 const overlay = document.getElementById('drawerOverlay');
-function openCart() { renderCartDrawer(); drawer.classList.add('open'); overlay.hidden = false; }
-function closeCart() { drawer.classList.remove('open'); overlay.hidden = true; }
-document.getElementById('cartBtn').onclick = openCart;
+const cartBtn = document.getElementById('cartBtn');
+
+function cartIsOpen() { return drawer.classList.contains('open'); }
+
+function openCart() {
+  renderCartDrawer();
+  drawer.classList.add('open');
+  overlay.hidden = false;
+  drawer.removeAttribute('aria-hidden');
+  cartBtn.setAttribute('aria-expanded', 'true');
+  syncBodyScroll();
+  focusFirst(drawer);
+}
+
+function closeCart() {
+  if (!cartIsOpen()) return;
+  drawer.classList.remove('open');
+  overlay.hidden = true;
+  drawer.setAttribute('aria-hidden', 'true');
+  cartBtn.setAttribute('aria-expanded', 'false');
+  syncBodyScroll();
+  cartBtn.focus();
+}
+
+cartBtn.onclick = openCart;
 document.getElementById('cartCloseBtn').onclick = closeCart;
 overlay.onclick = closeCart;
+
+/* ------------------- Tangentbord & fokus ------------------- */
+
+const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), ' +
+  'textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+function focusableIn(container) {
+  return [...container.querySelectorAll(FOCUSABLE)].filter(el => el.offsetParent !== null);
+}
+
+function focusFirst(container) {
+  const first = focusableIn(container)[0];
+  if (first) first.focus();
+}
+
+/** Håller kvar tabbningen inuti en öppen dialog. */
+function trapFocus(container, e) {
+  const items = focusableIn(container);
+  if (items.length === 0) return;
+  const first = items[0];
+  const last = items[items.length - 1];
+  if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+  else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+}
+
+/** Sidan bakom en öppen dialog ska inte kunna scrollas. */
+function syncBodyScroll() {
+  document.body.classList.toggle('no-scroll', cartIsOpen() || !motifModal.hidden);
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    if (!motifModal.hidden) { closeMotifModal(); return; }
+    if (cartIsOpen()) { closeCart(); return; }
+    if (navIsOpen()) closeNav();
+    return;
+  }
+  if (e.key === 'Tab') {
+    if (!motifModal.hidden) trapFocus(motifModal.querySelector('.modal'), e);
+    else if (cartIsOpen()) trapFocus(drawer, e);
+  }
+});
+
+/* ------------------------- Mobilmeny ------------------------- */
+
+const navToggle = document.getElementById('navToggle');
+const mobileNav = document.getElementById('mobileNav');
+
+function navIsOpen() { return !mobileNav.hidden; }
+
+function openNav() {
+  mobileNav.hidden = false;
+  navToggle.classList.add('open');
+  navToggle.setAttribute('aria-expanded', 'true');
+  navToggle.setAttribute('aria-label', 'Stäng menyn');
+}
+
+function closeNav() {
+  if (!navIsOpen()) return;
+  mobileNav.hidden = true;
+  navToggle.classList.remove('open');
+  navToggle.setAttribute('aria-expanded', 'false');
+  navToggle.setAttribute('aria-label', 'Öppna menyn');
+}
+
+navToggle.onclick = () => (navIsOpen() ? closeNav() : openNav());
+mobileNav.querySelectorAll('a').forEach(a => a.addEventListener('click', closeNav));
+document.addEventListener('click', e => {
+  if (navIsOpen() && !mobileNav.contains(e.target) && !navToggle.contains(e.target)) closeNav();
+});
 
 /* ------------------------- Toast ------------------------- */
 
@@ -120,9 +212,14 @@ function route() {
   const hash = location.hash || '#/';
   const parts = hash.replace(/^#\//, '').split('/');
   window.scrollTo(0, 0);
+  closeNav();
+  closeMotifModal();
   if (parts[0] === 'produkt' && PRODUCTS[parts[1]]) renderProductPage(parts[1]);
   else if (parts[0] === 'kassa') renderCheckoutPage();
   else if (parts[0] === 'tack') renderConfirmationPage();
+  else if (parts[0] === 'storleksguide') renderSizeGuidePage();
+  else if (parts[0] === 'leverans') renderDeliveryPage();
+  else if (parts[0] === 'kontakt') renderContactPage();
   else renderHomePage();
 }
 window.addEventListener('hashchange', route);
@@ -215,8 +312,8 @@ function renderProductPage(productId) {
         <div class="preview-col">
           <div class="preview-stage">
             <div class="side-toggle">
-              <button id="sideFront">FRAMSIDA</button>
-              <button id="sideBack">BAKSIDA</button>
+              <button id="sideFront" aria-pressed="false">FRAMSIDA</button>
+              <button id="sideBack" aria-pressed="false">BAKSIDA</button>
             </div>
             <div class="preview-badge" id="previewBadge"></div>
             <div id="previewSvg"></div>
@@ -269,8 +366,10 @@ function renderProductPage(productId) {
             <div class="placement-grid" id="placementGrid"></div>
           </div>
 
-          <button class="addtocart-btn" id="addBtn" disabled></button>
-          <div class="addtocart-hint" id="addHint"></div>
+          <div class="addtocart-wrap">
+            <button class="addtocart-btn" id="addBtn" disabled></button>
+            <div class="addtocart-hint" id="addHint"></div>
+          </div>
         </div>
       </div>
     </div>`;
@@ -278,13 +377,18 @@ function renderProductPage(productId) {
   /* --- färgminiatyrer --- */
   const thumbs = document.getElementById('colorThumbs');
   thumbs.innerHTML = COLORS.map(c => `
-    <button class="color-thumb ${c.id === s.color ? 'selected' : ''}" data-color="${c.id}" title="${c.name}">
+    <button class="color-thumb ${c.id === s.color ? 'selected' : ''}" data-color="${c.id}"
+      title="${c.name}" aria-pressed="${c.id === s.color}" aria-label="Färg: ${c.name}">
       ${renderThumb(productId, c.hex)}
       <span class="thumb-name">${c.name}</span>
     </button>`).join('');
   thumbs.querySelectorAll('[data-color]').forEach(b => b.onclick = () => {
     s.color = b.dataset.color;
-    thumbs.querySelectorAll('.color-thumb').forEach(t => t.classList.toggle('selected', t.dataset.color === s.color));
+    thumbs.querySelectorAll('.color-thumb').forEach(t => {
+      const on = t.dataset.color === s.color;
+      t.classList.toggle('selected', on);
+      t.setAttribute('aria-pressed', on);
+    });
     update();
   });
 
@@ -295,10 +399,15 @@ function renderProductPage(productId) {
   /* --- storlekar --- */
   const sizeGrid = document.getElementById('sizeGrid');
   sizeGrid.innerHTML = SIZES.map(sz =>
-    `<button class="size-btn ${s.size === sz ? 'selected' : ''}" data-size="${sz}">${sz}</button>`).join('');
+    `<button class="size-btn ${s.size === sz ? 'selected' : ''}" data-size="${sz}"
+      aria-pressed="${s.size === sz}" aria-label="Storlek ${sz}">${sz}</button>`).join('');
   sizeGrid.querySelectorAll('[data-size]').forEach(b => b.onclick = () => {
     s.size = b.dataset.size;
-    sizeGrid.querySelectorAll('.size-btn').forEach(x => x.classList.toggle('selected', x.dataset.size === s.size));
+    sizeGrid.querySelectorAll('.size-btn').forEach(x => {
+      const on = x.dataset.size === s.size;
+      x.classList.toggle('selected', on);
+      x.setAttribute('aria-pressed', on);
+    });
     update();
   });
 
@@ -329,16 +438,20 @@ function renderProductPage(productId) {
     </svg>`;
   };
   plGrid.innerHTML = PLACEMENTS.map(p => `
-    <button class="placement-card ${s.placement === p.id ? 'selected' : ''}" data-placement="${p.id}">
-      <div class="pl-icon">${plIcon(p.id)}</div>
+    <button class="placement-card ${s.placement === p.id ? 'selected' : ''}" data-placement="${p.id}"
+      aria-pressed="${s.placement === p.id}" aria-label="Placering: ${p.name}, ${p.size}. ${p.desc}">
+      <div class="pl-icon" aria-hidden="true">${plIcon(p.id)}</div>
       <h4>${p.name}</h4>
       <small>${p.size}</small>
     </button>`).join('');
   plGrid.querySelectorAll('[data-placement]').forEach(b => b.onclick = () => {
     s.placement = b.dataset.placement;
     s.side = PLACEMENT_BY_ID[s.placement].side; // visa rätt sida direkt
-    plGrid.querySelectorAll('.placement-card').forEach(x =>
-      x.classList.toggle('selected', x.dataset.placement === s.placement));
+    plGrid.querySelectorAll('.placement-card').forEach(x => {
+      const on = x.dataset.placement === s.placement;
+      x.classList.toggle('selected', on);
+      x.setAttribute('aria-pressed', on);
+    });
     update();
   });
 
@@ -364,8 +477,12 @@ function renderProductPage(productId) {
       s.product, s.side, color.hex,
       { motifId: s.motif, placementId: s.placement, showPrintAreas: !s.placement && !!s.motif }
     );
-    document.getElementById('sideFront').classList.toggle('active', s.side === 'front');
-    document.getElementById('sideBack').classList.toggle('active', s.side === 'back');
+    const sideFront = document.getElementById('sideFront');
+    const sideBack = document.getElementById('sideBack');
+    sideFront.classList.toggle('active', s.side === 'front');
+    sideBack.classList.toggle('active', s.side === 'back');
+    sideFront.setAttribute('aria-pressed', s.side === 'front');
+    sideBack.setAttribute('aria-pressed', s.side === 'back');
     document.getElementById('previewBadge').textContent =
       `${product.name} · ${color.name} · ${s.side === 'front' ? 'Framsida' : 'Baksida'}`;
 
@@ -418,25 +535,61 @@ function renderProductPage(productId) {
 
 const motifModal = document.getElementById('motifModal');
 const motifGrid = document.getElementById('motifGrid');
+const motifSearch = document.getElementById('motifSearch');
+const motifEmpty = document.getElementById('motifEmpty');
+const motifCount = document.getElementById('motifCount');
 
-function openMotifModal() {
-  motifGrid.innerHTML = MOTIFS.map(m => `
-    <button class="motif-tile ${configState.motif === m.id ? 'selected' : ''}" data-motif="${m.id}">
-      <svg viewBox="0 0 100 100">${m.svg}</svg>
+/* Elementet som öppnade modalen — dit går fokus tillbaka när den stängs. */
+let motifOpener = null;
+
+function renderMotifGrid(query = '') {
+  const q = query.trim().toLowerCase();
+  const list = q ? MOTIFS.filter(m => m.name.toLowerCase().includes(q)) : MOTIFS;
+
+  motifGrid.innerHTML = list.map(m => {
+    const selected = configState.motif === m.id;
+    return `
+    <button class="motif-tile ${selected ? 'selected' : ''}" data-motif="${m.id}" aria-pressed="${selected}">
+      <svg viewBox="0 0 100 100" aria-hidden="true">${m.svg}</svg>
       <span>${m.name}</span>
-    </button>`).join('');
+    </button>`;
+  }).join('');
+
+  motifEmpty.hidden = list.length > 0;
+  motifCount.textContent = q
+    ? `${list.length} av ${MOTIFS.length}`
+    : `${MOTIFS.length} motiv`;
+
   motifGrid.querySelectorAll('[data-motif]').forEach(b => b.onclick = () => {
     configState.motif = b.dataset.motif;
     closeMotifModal();
     renderProductPage(configState.product);
+    const btn = document.getElementById('motifBtn');
+    if (btn) btn.focus();
   });
+}
+
+function openMotifModal() {
+  motifOpener = document.activeElement;
+  motifSearch.value = '';
+  renderMotifGrid();
   motifModal.hidden = false;
-  document.body.style.overflow = 'hidden';
+  syncBodyScroll();
+  /* Fokusera det valda motivet, inte sökrutan — annars tar mobilens
+     tangentbord halva skärmen direkt när galleriet öppnas. */
+  const selected = motifGrid.querySelector('.motif-tile.selected');
+  (selected || motifGrid.querySelector('.motif-tile') || motifSearch).focus();
 }
+
 function closeMotifModal() {
+  if (motifModal.hidden) return;
   motifModal.hidden = true;
-  document.body.style.overflow = '';
+  syncBodyScroll();
+  if (motifOpener && document.contains(motifOpener)) motifOpener.focus();
+  motifOpener = null;
 }
+
+motifSearch.addEventListener('input', () => renderMotifGrid(motifSearch.value));
 document.getElementById('motifCloseBtn').onclick = closeMotifModal;
 motifModal.addEventListener('click', e => { if (e.target === motifModal) closeMotifModal(); });
 
@@ -455,14 +608,29 @@ function renderCheckoutPage() {
     return;
   }
 
+  /* Varje fält validerar sig självt och har rätt tangentbord på mobil. */
   const fields = [
-    { id: 'email', label: 'E-postadress', type: 'email', full: true, ph: 'namn@exempel.se' },
-    { id: 'fname', label: 'Förnamn', ph: 'Anna' },
-    { id: 'lname', label: 'Efternamn', ph: 'Andersson' },
-    { id: 'address', label: 'Gatuadress', full: true, ph: 'Exempelgatan 12' },
-    { id: 'zip', label: 'Postnummer', ph: '123 45' },
-    { id: 'city', label: 'Ort', ph: 'Stockholm' },
-    { id: 'phone', label: 'Mobilnummer', full: true, ph: '070-123 45 67' },
+    { id: 'email', label: 'E-postadress', type: 'email', full: true, ph: 'namn@exempel.se',
+      autocomplete: 'email', inputmode: 'email',
+      test: v => /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(v),
+      error: 'Ange en giltig e-postadress.' },
+    { id: 'fname', label: 'Förnamn', ph: 'Anna', autocomplete: 'given-name',
+      test: v => v.length >= 2, error: 'Ange ditt förnamn.' },
+    { id: 'lname', label: 'Efternamn', ph: 'Andersson', autocomplete: 'family-name',
+      test: v => v.length >= 2, error: 'Ange ditt efternamn.' },
+    { id: 'address', label: 'Gatuadress', full: true, ph: 'Exempelgatan 12',
+      autocomplete: 'street-address',
+      test: v => v.length >= 5 && /\d/.test(v),
+      error: 'Ange gatuadress med gatunummer.' },
+    { id: 'zip', label: 'Postnummer', ph: '123 45', autocomplete: 'postal-code', inputmode: 'numeric',
+      test: v => /^\d{3}\s?\d{2}$/.test(v),
+      error: 'Postnummer ska vara fem siffror.' },
+    { id: 'city', label: 'Ort', ph: 'Stockholm', autocomplete: 'address-level2',
+      test: v => v.length >= 2, error: 'Ange ort.' },
+    { id: 'phone', label: 'Mobilnummer', type: 'tel', full: true, ph: '070-123 45 67',
+      autocomplete: 'tel', inputmode: 'tel',
+      test: v => /^(0|\+46)7\d{8}$/.test(v.replace(/[\s-]/g, '')),
+      error: 'Ange ett svenskt mobilnummer, t.ex. 070-123 45 67.' },
   ];
 
   const total = cartTotal();
@@ -479,7 +647,11 @@ function renderCheckoutPage() {
               ${fields.map(f => `
                 <div class="form-field ${f.full ? 'full' : ''}">
                   <label for="f-${f.id}">${f.label}</label>
-                  <input id="f-${f.id}" type="${f.type || 'text'}" placeholder="${f.ph}" autocomplete="on">
+                  <input id="f-${f.id}" type="${f.type || 'text'}" placeholder="${f.ph}"
+                    autocomplete="${f.autocomplete}"
+                    ${f.inputmode ? `inputmode="${f.inputmode}"` : ''}
+                    aria-describedby="e-${f.id}">
+                  <span class="field-error" id="e-${f.id}" role="alert" hidden></span>
                 </div>`).join('')}
             </div>
           </div>
@@ -532,17 +704,40 @@ function renderCheckoutPage() {
       </div>
     </div>`;
 
-  document.getElementById('payBtn').onclick = () => {
-    /* enkel validering */
-    let valid = true;
-    fields.forEach(f => {
-      const input = document.getElementById(`f-${f.id}`);
-      const ok = input.value.trim().length > 1 &&
-        (f.type !== 'email' || /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(input.value.trim()));
+  /* Validerar ett fält och visar felet under det. Tomt fält innan man
+     rört det ska inte skrika — därför flaggas fel först vid blur eller köp. */
+  function validateField(f, show) {
+    const input = document.getElementById(`f-${f.id}`);
+    const errEl = document.getElementById(`e-${f.id}`);
+    const value = input.value.trim();
+    const ok = value.length > 0 && f.test(value);
+    if (show) {
       input.classList.toggle('invalid', !ok);
-      if (!ok) valid = false;
+      input.setAttribute('aria-invalid', String(!ok));
+      errEl.textContent = ok ? '' : (value.length === 0 ? `${f.label} saknas.` : f.error);
+      errEl.hidden = ok;
+    }
+    return ok;
+  }
+
+  fields.forEach(f => {
+    const input = document.getElementById(`f-${f.id}`);
+    input.addEventListener('blur', () => validateField(f, true));
+    /* När fältet väl är rödmarkerat ska det bli grönt så fort det blir rätt. */
+    input.addEventListener('input', () => {
+      if (input.classList.contains('invalid')) validateField(f, true);
     });
-    if (!valid) { toast('Fyll i alla uppgifter för att slutföra köpet.'); return; }
+  });
+
+  document.getElementById('payBtn').onclick = () => {
+    const firstInvalid = fields.filter(f => !validateField(f, true))[0];
+    if (firstInvalid) {
+      const input = document.getElementById(`f-${firstInvalid.id}`);
+      input.focus();
+      input.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      toast('Kontrollera de markerade fälten.');
+      return;
+    }
 
     const btn = document.getElementById('payBtn');
     btn.disabled = true;
@@ -588,7 +783,148 @@ function renderConfirmationPage() {
     </div>`;
 }
 
+/* ------------------------- Storleksguide ------------------------- */
+
+function renderSizeGuidePage() {
+  const tables = Object.keys(SIZE_CHART).map(id => {
+    const chart = SIZE_CHART[id];
+    return `
+      <section class="guide-block">
+        <h2>${PRODUCTS[id].name}</h2>
+        <div class="table-scroll">
+          <table class="size-table">
+            <thead>
+              <tr><th scope="col">Storlek</th>${chart.columns.map(c => `<th scope="col">${c}</th>`).join('')}</tr>
+            </thead>
+            <tbody>
+              ${SIZES.map(sz => `
+                <tr>
+                  <th scope="row">${sz}</th>
+                  ${chart.rows[sz].map(v => `<td>${v} cm</td>`).join('')}
+                </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+      </section>`;
+  }).join('');
+
+  app.innerHTML = `
+    <div class="info-page">
+      <div class="breadcrumb"><a href="#/">Hem</a> / Storleksguide</div>
+      <h1>Storleksguide</h1>
+      <p class="lead">Måtten är tagna på plagget när det ligger platt, inte på kroppen.
+      Bröstvidden mäts rakt över från söm till söm en bit under ärmhålet.</p>
+
+      <div class="guide-tip">
+        <strong>Osäker mellan två storlekar?</strong>
+        Mät ett plagg du redan gillar och jämför med tabellen — det är säkrare än att
+        gissa utifrån vad du brukar ha. Hoodien är oversized och sitter en storlek
+        rymligare än t-shirten.
+      </div>
+
+      ${tables}
+
+      <p class="info-fine">Måtten är ungefärliga och kan avvika med ±2 cm mellan enskilda plagg.</p>
+      <a class="hero-cta" href="#/">Börja designa →</a>
+    </div>`;
+}
+
+/* ------------------------- Leverans & retur ------------------------- */
+
+function renderDeliveryPage() {
+  app.innerHTML = `
+    <div class="info-page">
+      <div class="breadcrumb"><a href="#/">Hem</a> / Leverans &amp; retur</div>
+      <h1>Leverans &amp; retur</h1>
+      <p class="lead">Varje plagg trycks för hand efter att du lagt din beställning.
+      Det tar några dagar extra — och det är hela poängen.</p>
+
+      <div class="info-grid">
+        <section class="info-card">
+          <h2>Leverans</h2>
+          <dl class="info-list">
+            <dt>Tryck &amp; packning</dt><dd>1–2 arbetsdagar</dd>
+            <dt>Frakt inom Sverige</dt><dd>2–3 arbetsdagar</dd>
+            <dt>Fraktkostnad</dt><dd>0 kr — fri frakt på alla ordrar</dd>
+            <dt>Spårning</dt><dd>Länk skickas via e-post när paketet lämnar oss</dd>
+          </dl>
+        </section>
+
+        <section class="info-card">
+          <h2>Retur</h2>
+          <p>Du har <strong>14 dagars ångerrätt</strong> från att du tagit emot paketet.
+          Plagget ska vara oanvänt och otvättat, med etiketter kvar.</p>
+          <p>Hör av dig till <a href="mailto:hej@motiv.se">hej@motiv.se</a> med ditt
+          ordernummer så skickar vi en returfraktsedel.</p>
+          <p class="info-fine">Pengarna är tillbaka på ditt konto inom 14 dagar från att
+          vi tagit emot returen.</p>
+        </section>
+
+        <section class="info-card">
+          <h2>Om något blivit fel</h2>
+          <p>Har trycket blivit snett, plagget skadat eller fick du fel storlek levererad?
+          Skicka en bild till <a href="mailto:hej@motiv.se">hej@motiv.se</a> så gör vi om
+          plagget kostnadsfritt — du behöver inte skicka tillbaka det första.</p>
+        </section>
+      </div>
+
+      <div class="guide-tip">
+        <strong>Demobutik.</strong> MOTIV. är ett demoprojekt. Inga riktiga beställningar
+        expedieras och ingen betalning genomförs.
+      </div>
+
+      <a class="hero-cta" href="#/">Börja designa →</a>
+    </div>`;
+}
+
+/* ------------------------- Kontakt ------------------------- */
+
+function renderContactPage() {
+  app.innerHTML = `
+    <div class="info-page">
+      <div class="breadcrumb"><a href="#/">Hem</a> / Kontakta oss</div>
+      <h1>Kontakta oss</h1>
+      <p class="lead">Vi är ett litet team och svarar oftast samma dag.</p>
+
+      <div class="info-grid">
+        <section class="info-card">
+          <h2>Skriv till oss</h2>
+          <dl class="info-list">
+            <dt>Kundservice</dt><dd><a href="mailto:hej@motiv.se">hej@motiv.se</a></dd>
+            <dt>Order &amp; retur</dt><dd><a href="mailto:order@motiv.se">order@motiv.se</a></dd>
+            <dt>Telefon</dt><dd><a href="tel:+46812345678">08-123 456 78</a></dd>
+          </dl>
+          <p class="info-fine">Ha ditt ordernummer nära till hands — det står i
+          orderbekräftelsen och börjar med MV-.</p>
+        </section>
+
+        <section class="info-card">
+          <h2>Öppettider</h2>
+          <dl class="info-list">
+            <dt>Måndag–fredag</dt><dd>09.00–17.00</dd>
+            <dt>Lördag</dt><dd>10.00–14.00</dd>
+            <dt>Söndag</dt><dd>Stängt</dd>
+          </dl>
+        </section>
+
+        <section class="info-card">
+          <h2>Tryckeriet</h2>
+          <p>MOTIV.<br>Exempelgatan 12<br>111 22 Stockholm</p>
+          <p class="info-fine">Tryckeriet tar inte emot besök utan bokning.</p>
+        </section>
+      </div>
+
+      <div class="guide-tip">
+        <strong>Demobutik.</strong> Kontaktuppgifterna ovan är påhittade och går inte
+        att nå — MOTIV. är ett demoprojekt.
+      </div>
+
+      <a class="hero-cta" href="#/">Börja designa →</a>
+    </div>`;
+}
+
 /* ------------------------- Init ------------------------- */
 
+drawer.setAttribute('aria-hidden', 'true');
 updateCartBadge();
 route();

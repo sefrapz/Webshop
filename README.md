@@ -30,6 +30,13 @@ python3 -m http.server 8000
    (Betala nu / Betala om 30 dagar / Delbetala). Demobetalning — ingen
    riktig transaktion sker.
 
+Därtill finns **Storleksguide**, **Leverans & retur** och **Kontakta oss**
+under `#/storleksguide`, `#/leverans` och `#/kontakt`.
+
+Sajten fungerar på mobil: hamburgermeny under 720 px, varukorg och motivgalleri
+i helskärm, sticky köpknapp och tumvänliga träffytor. Escape stänger öppna
+dialoger, fokus hålls kvar i dem och återgår dit det kom ifrån.
+
 ## Teknik
 
 | Fil | Ansvar |
