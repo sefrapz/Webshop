@@ -33,6 +33,11 @@ python3 -m http.server 8000
 Därtill finns **Storleksguide**, **Leverans & retur** och **Kontakta oss**
 under `#/storleksguide`, `#/leverans` och `#/kontakt`.
 
+**Designen går att dela.** Valen ligger i adressfältet, så en länk som
+`#/produkt/hoodie?farg=svart&motiv=tiger&plats=rygg` öppnar exakt det plagget
+hos mottagaren. Knappen *Dela designen* använder mobilens delningsmeny när den
+finns och kopierar annars länken. Designen överlever också omladdning.
+
 Sajten fungerar på mobil: hamburgermeny under 720 px, varukorg och motivgalleri
 i helskärm, sticky köpknapp och tumvänliga träffytor. Escape stänger öppna
 dialoger, fokus hålls kvar i dem och återgår dit det kom ifrån.

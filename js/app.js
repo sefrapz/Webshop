@@ -210,11 +210,13 @@ function toast(msg) {
 
 function route() {
   const hash = location.hash || '#/';
-  const parts = hash.replace(/^#\//, '').split('/');
+  const [path, query] = hash.replace(/^#\//, '').split('?');
+  const parts = path.split('/');
+  const params = new URLSearchParams(query || '');
   window.scrollTo(0, 0);
   closeNav();
   closeMotifModal();
-  if (parts[0] === 'produkt' && PRODUCTS[parts[1]]) renderProductPage(parts[1]);
+  if (parts[0] === 'produkt' && PRODUCTS[parts[1]]) renderProductPage(parts[1], params);
   else if (parts[0] === 'kassa') renderCheckoutPage();
   else if (parts[0] === 'tack') renderConfirmationPage();
   else if (parts[0] === 'storleksguide') renderSizeGuidePage();
@@ -290,7 +292,43 @@ function renderHomePage() {
 
 const configState = {};
 
-function renderProductPage(productId) {
+/* ---------------------------------------------------------
+   Designen ligger i adressfältet: #/produkt/hoodie?farg=svart…
+   Det gör att den överlever omladdning och går att dela.
+   --------------------------------------------------------- */
+
+function designHash(s) {
+  const p = new URLSearchParams();
+  if (s.color) p.set('farg', s.color);
+  if (s.size) p.set('stl', s.size);
+  if (s.motif) p.set('motiv', s.motif);
+  if (s.placement) p.set('plats', s.placement);
+  const q = p.toString();
+  return `#/produkt/${s.product}${q ? '?' + q : ''}`;
+}
+
+/** Läser designen ur länken. Okända värden ignoreras tyst. */
+function applyDesignParams(params) {
+  const s = configState;
+  const farg = params.get('farg');
+  if (farg && COLOR_BY_ID[farg]) s.color = farg;
+  const stl = params.get('stl');
+  if (stl && SIZES.includes(stl)) s.size = stl;
+  const motiv = params.get('motiv');
+  if (motiv && MOTIF_BY_ID[motiv]) s.motif = motiv;
+  const plats = params.get('plats');
+  if (plats && PLACEMENT_BY_ID[plats]) {
+    s.placement = plats;
+    s.side = PLACEMENT_BY_ID[plats].side;
+  }
+}
+
+/** Full delbar länk till den design som visas just nu. */
+function designUrl(s) {
+  return location.origin + location.pathname + location.search + designHash(s);
+}
+
+function renderProductPage(productId, params) {
   const product = PRODUCTS[productId];
 
   if (configState.product !== productId) {
@@ -302,6 +340,7 @@ function renderProductPage(productId) {
     configState.motif = null;
     configState.placement = null;
   }
+  if (params) applyDesignParams(params);
   const s = configState;
 
   app.innerHTML = `
@@ -319,6 +358,14 @@ function renderProductPage(productId) {
             <div id="previewSvg"></div>
           </div>
           <div class="color-thumbs" id="colorThumbs"></div>
+          <button class="share-btn" id="shareBtn">
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor"
+              stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+              <path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/>
+            </svg>
+            Dela designen
+          </button>
         </div>
 
         <div class="config-col">
@@ -455,6 +502,27 @@ function renderProductPage(productId) {
     update();
   });
 
+  /* --- dela design --- */
+  document.getElementById('shareBtn').onclick = async () => {
+    const url = designUrl(s);
+    /* Mobilens egen delningsmeny först — det är den kunden väntar sig. */
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: `${product.name} från MOTIV.`, url });
+        return;
+      } catch (err) {
+        if (err && err.name === 'AbortError') return; // kunden ångrade sig
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      toast('Länken är kopierad ✓');
+    } catch (err) {
+      /* Urklipp kräver säker kontext — länken syns ändå i adressfältet. */
+      toast('Länken till din design finns i adressfältet.');
+    }
+  };
+
   /* --- lägg i varukorg --- */
   document.getElementById('addBtn').onclick = () => {
     if (!isConfigComplete()) return;
@@ -471,6 +539,14 @@ function renderProductPage(productId) {
 
   function update() {
     const color = COLOR_BY_ID[s.color];
+
+    /* Designen speglas i adressfältet vid varje ändring. replaceState
+       triggar ingen hashchange, så routern startar inte om sidan. */
+    try {
+      history.replaceState(null, '', designHash(s));
+    } catch (e) {
+      /* file:// tillåter inte replaceState — strunt samma, sidan fungerar ändå. */
+    }
 
     /* förhandsvisning */
     document.getElementById('previewSvg').innerHTML = renderGarment(

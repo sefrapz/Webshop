@@ -37,6 +37,12 @@ npx http-server -p 8000 -c-1 .   # eller: python3 -m http.server 8000
 - **Konfiguratorn** har ett `configState`-objekt som nollställs vid produktbyte.
   Alla ändringar går genom `update()` inuti `renderProductPage()`; undantaget är
   motivval som ritar om hela sidan.
+- **Designen ligger i adressfältet** som `#/produkt/hoodie?farg=svart&motiv=tiger&plats=rygg`.
+  `update()` skriver den med `history.replaceState` (som medvetet *inte* triggar
+  hashchange — annars startar routern om sidan vid varje klick), och
+  `applyDesignParams()` läser tillbaka den. Okända värden ignoreras tyst, så en
+  trasig länk aldrig kraschar sidan. Lägger du till ett val i konfiguratorn:
+  ta med det i både `designHash()` och `applyDesignParams()`.
 - **Varukorgen** ligger i `localStorage` under `motiv-cart`. Rader slås ihop på
   nyckeln `produkt|färg|storlek|motiv|placering`.
 
