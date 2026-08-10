@@ -19,7 +19,8 @@ python3 -m http.server 8000
 
 ## Flödet
 
-1. **Startsida** — tre klickbara kategorier: T-shirt, Hoodie, Långärmad t-shirt.
+1. **Startsida** — fyra klickbara kategorier: T-shirt, Långärmad t-shirt,
+   Sweatshirt och Hoodie.
 2. **Produktsida** — stor produktbild med fram-/baksida, 12 färgminiatyrer
    (klick på miniatyr byter den stora bilden), storleksval XS–5XL samt antal.
 3. **Motiv** — knapp som öppnar ett galleri med 25 motiv.
@@ -48,13 +49,15 @@ dialoger, fokus hålls kvar i dem och återgår dit det kom ifrån.
 | --- | --- |
 | `index.html` | Skal: header, footer, varukorgs-drawer, motiv-modal |
 | `css/style.css` | Hela designsystemet, responsivt ned till mobil |
-| `js/data.js` | Produkter, 12 färger, storlekar, 3 placeringar, 25 motiv (inline-SVG) |
+| `js/data.js` | 4 produkter, 12 färger, storlekar, 3 placeringar, 25 motiv (inline-SVG) |
 | `js/mockups.js` | SVG-motor som ritar plaggen i valfri färg, fram/bak, med motiv |
 | `js/app.js` | Hash-router, konfigurator, varukorg (localStorage), kassa |
 
 Alla produktbilder är programmatiskt genererad SVG i stället för foton.
-Det gör att varje kombination (3 plagg × 2 sidor × 12 färger × 25 motiv ×
-3 placeringar = 5 400 varianter) renderas exakt, utan en enda bildfil.
+Det gör att varje kombination (4 plagg × 2 sidor × 12 färger × 25 motiv ×
+3 placeringar = 7 200 varianter) renderas exakt, utan en enda bildfil.
+Tryckytan skalas mot plaggets verkliga bröstvidd, så 22 × 22 cm täcker en
+mindre del av en oversized hoodie än av en t-shirt.
 Vill man ersätta mockupsen med riktiga produktfoton byts bara
 `renderGarment()` ut mot `<img>`-element per färg/sida.
 

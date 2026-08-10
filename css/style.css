@@ -162,7 +162,7 @@ body.no-scroll { overflow: hidden; }
 .section-head span { color: var(--ink-soft); font-size: .9rem; }
 
 .category-grid {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px;
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px;
 }
 .category-card {
   background: var(--surface); border: 1px solid var(--line);
@@ -683,6 +683,7 @@ body.no-scroll { overflow: hidden; }
   .summary-card { position: static; }
   .steps-inner { grid-template-columns: 1fr 1fr; }
   .motif-grid { grid-template-columns: repeat(4, 1fr); }
+  .category-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 720px) {

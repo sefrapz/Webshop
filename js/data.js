@@ -19,12 +19,16 @@ const COLORS = [
   { id: 'rosa',     name: 'Rosa',        hex: '#e9a6b8' },
 ];
 
+/* `cm` är tryckytans sida i centimeter och styr hur stort motivet ritas.
+   Mockupen skalar den mot plaggets verkliga bröstvidd — se UNITS_PER_CM
+   i mockups.js — så samma tryck täcker en mindre del av en oversized
+   hoodie än av en t-shirt, precis som i verkligheten. */
 const PLACEMENTS = [
-  { id: 'hjarta', name: 'Hjärta', size: '10 × 10 cm', side: 'front',
+  { id: 'hjarta', name: 'Hjärta', size: '10 × 10 cm', cm: 10, side: 'front',
     desc: 'Diskret tryck på vänster bröst.' },
-  { id: 'mage',   name: 'Mage',   size: '22 × 22 cm', side: 'front',
+  { id: 'mage',   name: 'Mage',   size: '22 × 22 cm', cm: 22, side: 'front',
     desc: 'Stort tryck mitt på framsidan.' },
-  { id: 'rygg',   name: 'Rygg',   size: '22 × 22 cm', side: 'back',
+  { id: 'rygg',   name: 'Rygg',   size: '22 × 22 cm', cm: 22, side: 'back',
     desc: 'Stort tryck mitt på ryggen.' },
 ];
 
@@ -35,6 +39,13 @@ const PRODUCTS = {
     price: 249,
     tagline: 'Klassisk passform · 100 % ekologisk bomull · 185 g/m²',
     desc: 'Vår klassiska t-shirt i tjock, kammad ekologisk bomull. Förstärkta axelsömmar och en siluett som håller formen tvätt efter tvätt.',
+  },
+  sweatshirt: {
+    id: 'sweatshirt',
+    name: 'Sweatshirt',
+    price: 379,
+    tagline: 'Rak passform · ribbad mudd och midja · 320 g/m²',
+    desc: 'Klassisk collegetröja i tjock, borstad bomullsmix med ribbad krage, muddar och midja. Håller formen även efter många tvättar — och sitter lika bra över en skjorta som ensam.',
   },
   hoodie: {
     id: 'hoodie',
@@ -63,6 +74,13 @@ const SIZE_CHART = {
     rows: {
       XS: [46, 66], S: [49, 68], M: [52, 70], L: [55, 72], XL: [58, 74],
       '2XL': [61, 76], '3XL': [64, 78], '4XL': [67, 80], '5XL': [70, 82],
+    },
+  },
+  sweatshirt: {
+    columns: ['Bröstvidd', 'Längd', 'Ärmlängd'],
+    rows: {
+      XS: [49, 65, 60], S: [52, 67, 61], M: [55, 69, 62], L: [58, 71, 63], XL: [61, 73, 64],
+      '2XL': [64, 75, 65], '3XL': [67, 77, 66], '4XL': [70, 79, 67], '5XL': [73, 81, 68],
     },
   },
   hoodie: {
@@ -234,6 +252,34 @@ const MOTIFS = [
     <rect x='8' y='31' width='84' height='38' rx='4' fill='#1d3557'/>
     <text x='50' y='58' font-family='Arial, sans-serif' font-weight='900' font-size='23' letter-spacing='3' text-anchor='middle' fill='#f7c626'>STHLM</text>` },
 ];
+
+/* ---------------------------------------------------------
+   Motivens faktiska yta [x, y, bredd, höjd] inom sin viewBox,
+   uppmätt med getBBox i webbläsaren. Behövs för att ett tryck
+   ska bli lika stort som det utlovas: ritas motivet rakt av i
+   sin 100×100-ruta blir kaktusen (38 enheter bred) bara en
+   tredjedel av utlovade 22 cm. Mockupen skalar i stället
+   motivets största sida till hela tryckytan.
+
+   Lägger du till ett motiv: mät det och lägg in värdet här,
+   annars faller det tillbaka på hela rutan.
+   --------------------------------------------------------- */
+
+const MOTIF_BOX = {
+  tiger: [17, 7, 66, 83],         blixt: [24, 4, 54, 92],
+  berg: [6, 14, 88, 68],          vag: [5, 5, 90, 90],
+  solnedgang: [8, 12, 84, 66],    skalle: [16, 8, 68, 86],
+  ros: [28, 8, 44, 84],           orm: [14.6, 7, 58.9, 81],
+  orn: [6, 16, 88, 72],           kompass: [8, 8, 84, 84],
+  ankare: [22, 8, 56, 76],        krona: [8, 13, 84, 71],
+  stjarna: [5, 6, 90, 84],        hjarta: [14, 20, 72, 68],
+  fjaril: [11.9, 14.7, 76.2, 64.8], smiley: [10, 10, 80, 80],
+  yinyang: [6, 6, 88, 88],        attan: [8, 8, 84, 84],
+  tarningar: [7.9, 13.9, 82.3, 76.3], raket: [14, 4, 72, 93],
+  kaktus: [32, 7, 38, 83],        kassett: [8, 24, 84, 52],
+  peace: [10, 10, 80, 80],        est1994: [5, 5, 90, 90],
+  sthlm: [2.9, 22, 94.2, 56],
+};
 
 const MOTIF_BY_ID = Object.fromEntries(MOTIFS.map(m => [m.id, m]));
 const COLOR_BY_ID = Object.fromEntries(COLORS.map(c => [c.id, c]));

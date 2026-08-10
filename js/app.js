@@ -231,8 +231,9 @@ window.addEventListener('hashchange', route);
 function renderHomePage() {
   const cats = [
     { id: 'tshirt', color: '#28345c', note: 'från 249 kr' },
-    { id: 'hoodie', color: '#232327', note: 'från 449 kr' },
     { id: 'longsleeve', color: '#77755b', note: 'från 299 kr' },
+    { id: 'sweatshirt', color: '#722336', note: 'från 379 kr' },
+    { id: 'hoodie', color: '#232327', note: 'från 449 kr' },
   ];
   app.innerHTML = `
     <section class="hero">
@@ -245,7 +246,7 @@ function renderHomePage() {
     <section class="category-section">
       <div class="section-head">
         <h2>Välj ditt plagg</h2>
-        <span>3 plagg · 12 färger · 25 motiv · 3 placeringar</span>
+        <span>4 plagg · 12 färger · 25 motiv · 3 placeringar</span>
       </div>
       <div class="category-grid">
         ${cats.map(c => `
@@ -267,12 +268,12 @@ function renderHomePage() {
         <div class="step-item">
           <div class="step-num">STEG 01</div>
           <h4>Välj plagg &amp; färg</h4>
-          <p>T-shirt, hoodie eller långärmat — i 12 noga utvalda färger, XS till 5XL.</p>
+          <p>T-shirt, långärmat, sweatshirt eller hoodie — i 12 noga utvalda färger, XS till 5XL.</p>
         </div>
         <div class="step-item">
           <div class="step-num">STEG 02</div>
           <h4>Välj motiv</h4>
-          <p>25 handplockade motiv, tryckta med slitstarkt och miljövänligt DTG-tryck.</p>
+          <p>25 handplockade motiv, tryckta för hand med slitstark och miljövänlig färg.</p>
         </div>
         <div class="step-item">
           <div class="step-num">STEG 03</div>
@@ -582,7 +583,7 @@ function renderProductPage(productId, params) {
       const m = MOTIF_BY_ID[s.motif];
       motifBtn.classList.add('has-motif');
       motifBtn.innerHTML = `
-        <span class="motif-preview"><svg viewBox="0 0 100 100">${m.svg}</svg></span>
+        <span class="motif-preview"><svg viewBox="${motifViewBox(m.id)}" aria-hidden="true">${m.svg}</svg></span>
         <span>${m.name}<small>Klicka för att byta motiv</small></span>
         <span class="cta-arrow">→</span>`;
     } else {
@@ -626,7 +627,7 @@ function renderMotifGrid(query = '') {
     const selected = configState.motif === m.id;
     return `
     <button class="motif-tile ${selected ? 'selected' : ''}" data-motif="${m.id}" aria-pressed="${selected}">
-      <svg viewBox="0 0 100 100" aria-hidden="true">${m.svg}</svg>
+      <svg viewBox="${motifViewBox(m.id)}" aria-hidden="true">${m.svg}</svg>
       <span>${m.name}</span>
     </button>`;
   }).join('');

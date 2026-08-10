@@ -16,7 +16,7 @@ npx http-server -p 8000 -c-1 .   # eller: python3 -m http.server 8000
 | --- | --- |
 | `index.html` | Skal: header, footer, varukorgs-drawer, motiv-modal, toast |
 | `css/style.css` | Designsystem i CSS-variabler, sektioner i samma ordning som vyerna |
-| `js/data.js` | Produkter, 12 färger, 9 storlekar, 3 placeringar, 25 motiv |
+| `js/data.js` | 4 produkter, 12 färger, 9 storlekar, 3 placeringar, 25 motiv, storleksguide |
 | `js/mockups.js` | SVG-motor: ritar plaggen i `viewBox 0 0 600 700` |
 | `js/app.js` | Hash-router, konfigurator, varukorg (localStorage), kassa |
 
@@ -32,8 +32,16 @@ npx http-server -p 8000 -c-1 .   # eller: python3 -m http.server 8000
   horisontell skugga, vertikal skugga) och gradienterna får unika id:n via
   `_uidCounter` — behåll det, annars krockar flera plagg på samma sida.
 - **Motivet ritas bara** när placeringens `side` matchar sidan som visas, se
-  `renderGarment()`. Placeringarnas tryckytor sitter i `getPrintRect()`, där
-  hoodien har egna y-värden eftersom plagget är längre.
+  `renderGarment()`.
+- **Trycket är skalat mot verkligheten.** `getPrintRect()` räknar om
+  placeringens `cm` till SVG-enheter via `UNITS_PER_CM`, som utgår från att
+  plaggets torso är ~296 enheter brett och jämför med bröstvidden i storlek M
+  ur `SIZE_CHART`. Därför täcker 22 × 22 cm en mindre del av en oversized
+  hoodie än av en t-shirt. `PRINT_TOP` styr höjdläget per plagg.
+- **Motivet fyller tryckytan** tack vare `motifViewBox()`, som använder den
+  uppmätta ytan i `MOTIF_BOX` och skalar motivets största sida till hela
+  rutan. Utan det ritas t.ex. kaktusen (38 av 100 enheter bred) i en tredjedel
+  av utlovade 22 cm. Nytt motiv ⇒ mät det och lägg in i `MOTIF_BOX`.
 - **Konfiguratorn** har ett `configState`-objekt som nollställs vid produktbyte.
   Alla ändringar går genom `update()` inuti `renderProductPage()`; undantaget är
   motivval som ritar om hela sidan.
@@ -63,8 +71,13 @@ till en ny dialog:
 
 - All UI-text är på svenska. Kommentarer i koden likaså.
 - Priser är heltal kronor, formaterade som `${n} kr`.
-- Nya motiv läggs i `MOTIFS` i `js/data.js` med `viewBox 0 0 100 100`.
+- Nya motiv läggs i `MOTIFS` i `js/data.js` med `viewBox 0 0 100 100` — och i
+  `MOTIF_BOX` med sin uppmätta yta.
 - Nya färger läggs i `COLORS`; mockupmotorn tar hex rakt av, inget mer behövs.
+- Nytt plagg kräver fyra saker: post i `PRODUCTS`, rad i `SIZE_CHART`, kropp och
+  detaljer i `js/mockups.js` med en gren i `renderGarment()`, samt värden i
+  `UNITS_PER_CM` och `PRINT_TOP`. Glöm inte länkarna i `index.html`.
+- Nämn inte tryckteknik i UI-texter.
 - Håll det beroendefritt — inget byggsteg, inga npm-paket i klienten.
 
 ## Titta på resultatet

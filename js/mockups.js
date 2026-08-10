@@ -188,20 +188,128 @@ function _hoodieCuffs(color) {
     <path d="M544 549 L549 596 M526 553 L531 600 M508 557 L513 602" stroke="rgba(0,0,0,.15)" stroke-width="2.5"/>`;
 }
 
+/* ------------------------- SWEATSHIRT ------------------------- */
+
+function _sweatshirtBody(side) {
+  const neckClose = side === 'front'
+    ? 'C354 132 246 132 228 94'
+    : 'C350 112 250 112 228 94';
+  return `M228 94
+    C202 100 170 112 150 126
+    C108 152 78 198 66 256
+    C55 316 49 434 47 542
+    L107 556
+    C113 456 121 338 154 268
+    L149 588
+    C222 612 378 612 451 588
+    L446 268
+    C479 338 487 456 493 556
+    L553 542
+    C551 434 545 316 534 256
+    C522 198 492 152 450 126
+    C430 112 398 100 372 94
+    ${neckClose} Z`;
+}
+
+function _sweatshirtCuffs(color) {
+  return `
+    <path d="M43 538 L111 552 L106 600 L38 586 Z" fill="${color}"/>
+    <path d="M43 538 L111 552 L106 600 L38 586 Z" fill="rgba(0,0,0,.14)" stroke="${OUTLINE}" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M61 543 L56 590 M79 546 L74 594 M97 550 L92 598" stroke="rgba(0,0,0,.15)" stroke-width="2.5"/>
+    <path d="M557 538 L489 552 L494 600 L562 586 Z" fill="${color}"/>
+    <path d="M557 538 L489 552 L494 600 L562 586 Z" fill="rgba(0,0,0,.14)" stroke="${OUTLINE}" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M539 543 L544 590 M521 546 L526 594 M503 550 L508 598" stroke="rgba(0,0,0,.15)" stroke-width="2.5"/>`;
+}
+
+/** Ribbad midja — det som skiljer collegetröjan från t-shirten. */
+function _sweatshirtWaistband(color) {
+  const band = 'M149 584 C222 608 378 608 451 584 L455 622 C378 648 222 648 145 622 Z';
+  return `
+    <path d="${band}" fill="${color}"/>
+    <path d="${band}" fill="rgba(0,0,0,.13)" stroke="${OUTLINE}" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M180 596 L182 634 M215 604 L217 641 M250 609 L251 645 M285 611 L286 647
+             M320 611 L319 647 M355 609 L354 645 M390 604 L388 641 M425 596 L423 634"
+      stroke="rgba(0,0,0,.13)" stroke-width="2.5"/>`;
+}
+
+function _sweatshirtDetails(side, uid, color) {
+  /* Ribbad krage ritad som ett band innanför halslinjen. Ett tjockt streck
+     längs kanten hade spillt ut ovanför plagget och synts mot bakgrunden. */
+  const band = side === 'front'
+    ? 'M228 94 C246 132 354 132 372 94 L372 108 C354 146 246 146 228 108 Z'
+    : 'M228 94 C250 113 350 113 372 94 L372 107 C350 126 250 126 228 107 Z';
+  const ribs = side === 'front'
+    ? 'M252 116 L252 130 M276 126 L276 140 M300 129 L300 143 M324 126 L324 140 M348 116 L348 130'
+    : 'M252 105 L252 118 M276 110 L276 123 M300 111 L300 124 M324 110 L324 123 M348 105 L348 118';
+  const collar = `
+    <path d="${band}" fill="${color}"/>
+    <path d="${band}" fill="rgba(0,0,0,.26)" stroke="${OUTLINE}" stroke-width="2.5" stroke-linejoin="round"/>
+    <path d="${ribs}" stroke="rgba(0,0,0,.16)" stroke-width="2.5"/>`;
+  return `
+    ${collar}
+    ${_sweatshirtCuffs(color)}
+    ${_sweatshirtWaistband(color)}
+    <path d="M154 268 C147 208 149 162 150 126" stroke="${SEAM}" stroke-width="2.5" fill="none"/>
+    <path d="M446 268 C453 208 451 162 450 126" stroke="${SEAM}" stroke-width="2.5" fill="none"/>
+    <path d="M120 300 C128 340 124 420 120 500" stroke="rgba(0,0,0,.07)" stroke-width="7" fill="none" stroke-linecap="round"/>
+    <path d="M480 300 C472 340 476 420 480 500" stroke="rgba(0,0,0,.07)" stroke-width="7" fill="none" stroke-linecap="round"/>`;
+}
+
 /* --------------------- TRYCKYTOR (placeringar) --------------------- */
 
+/* Plaggets torso är ~296 enheter brett i mockupen. Delat med den
+   verkliga bröstvidden i storlek M (SIZE_CHART) ger det hur många
+   enheter en centimeter motsvarar — olika per plagg, eftersom en
+   oversized hoodie är bredare än en t-shirt. Därför täcker ett
+   22 × 22-tryck en mindre del av hoodien, precis som på riktigt. */
+const TORSO_UNITS = 296;
+
+const UNITS_PER_CM = {
+  tshirt:     TORSO_UNITS / 52,
+  longsleeve: TORSO_UNITS / 52,
+  sweatshirt: TORSO_UNITS / 55,
+  hoodie:     TORSO_UNITS / 58,
+};
+
+/* Tryckytans överkant. Hoodien och sweatshirten är längre plagg och
+   har lägre halsringning, så deras tryck sitter längre ned. */
+const PRINT_TOP = {
+  tshirt:     { hjarta: 216, mage: 284, rygg: 248 },
+  longsleeve: { hjarta: 216, mage: 284, rygg: 248 },
+  sweatshirt: { hjarta: 232, mage: 296, rygg: 260 },
+  hoodie:     { hjarta: 250, mage: 310, rygg: 272 },
+};
+
+/* Hjärtat sitter på bärarens vänstra bröst — till höger i bild. */
+const PRINT_CENTER_X = { hjarta: 367, mage: 300, rygg: 300 };
+
 function getPrintRect(productId, placementId) {
-  const isHoodie = productId === 'hoodie';
-  switch (placementId) {
-    case 'hjarta':
-      return { x: 336, y: isHoodie ? 248 : 218, w: 62, h: 62, side: 'front' };
-    case 'mage':
-      return { x: 236, y: isHoodie ? 306 : 280, w: 128, h: 128, side: 'front' };
-    case 'rygg':
-      return { x: 236, y: isHoodie ? 268 : 244, w: 128, h: 128, side: 'back' };
-    default:
-      return null;
-  }
+  const pl = PLACEMENT_BY_ID[placementId];
+  if (!pl) return null;
+  const scale = UNITS_PER_CM[productId] || UNITS_PER_CM.tshirt;
+  const size = Math.round(pl.cm * scale);
+  const tops = PRINT_TOP[productId] || PRINT_TOP.tshirt;
+  return {
+    /* Inte avrundat — en udda tryckbredd ska ändå hamna exakt i mitten. */
+    x: PRINT_CENTER_X[placementId] - size / 2,
+    y: tops[placementId],
+    w: size,
+    h: size,
+    side: pl.side,
+  };
+}
+
+/**
+ * viewBox som gör att motivets största sida fyller hela tryckytan.
+ * Utan detta ritas motivet i sin 100×100-ruta och blir mindre än
+ * de centimetermått butiken lovar.
+ */
+function motifViewBox(motifId) {
+  const box = MOTIF_BOX[motifId];
+  if (!box) return '0 0 100 100';
+  const [x, y, w, h] = box;
+  const side = Math.max(w, h);
+  return `${(x + w / 2 - side / 2).toFixed(1)} ${(y + h / 2 - side / 2).toFixed(1)} ${side} ${side}`;
 }
 
 /* --------------------------- RENDER --------------------------- */
@@ -218,6 +326,9 @@ function renderGarment(productId, side, colorHex, opts = {}) {
   if (productId === 'hoodie') {
     bodyPath = _hoodieBody(side);
     details = _hoodieDetails(side, uid, colorHex);
+  } else if (productId === 'sweatshirt') {
+    bodyPath = _sweatshirtBody(side);
+    details = _sweatshirtDetails(side, uid, colorHex);
   } else if (productId === 'longsleeve') {
     bodyPath = _longsleeveBody(side);
     details = _longsleeveDetails(side, uid, colorHex);
@@ -232,7 +343,8 @@ function renderGarment(productId, side, colorHex, opts = {}) {
     const motif = MOTIF_BY_ID[opts.motifId];
     if (rect && motif && rect.side === side) {
       motifMarkup = `
-        <svg x="${rect.x}" y="${rect.y}" width="${rect.w}" height="${rect.h}" viewBox="0 0 100 100" overflow="visible">
+        <svg x="${rect.x}" y="${rect.y}" width="${rect.w}" height="${rect.h}"
+             viewBox="${motifViewBox(motif.id)}" overflow="visible">
           ${motif.svg}
         </svg>`;
     }
