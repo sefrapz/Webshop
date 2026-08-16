@@ -1,15 +1,20 @@
-# Trend Pyramid — trendföljande strategi för TradingView
+# Trend Pyramid — trendföljande strategi
 
-Steg 1 av tre: en komplett Pine-strategi du kan backtesta själv. Ingen
-exekvering, inga pengar inblandade ännu. Poängen med det här steget är att se
-om det finns någon edge kvar **efter** kostnader, innan vi bygger automatik
-ovanpå.
+Samma logik i två utföranden: en Pine-strategi för snabb backtest i TradingView,
+och en Expert Advisor som kör skarpt i MetaTrader 5. Poängen med båda är
+densamma — se om det finns någon edge kvar **efter** kostnader.
 
 ## Filer
 
 | Fil | Innehåll |
 | --- | --- |
-| `pine/trend-pyramid.pine` | Strategin. Klistras in i TradingViews Pine Editor. |
+| `pine/trend-pyramid.pine` | Strategin för TradingView. Klistras in i Pine Editor. |
+| `mt5/TrendPyramid.mq5` | Expert Advisor för MetaTrader 5 — kör skarpt, stoppen ligger hos mäklaren. |
+| `mt5/README.md` | Installation, backtest på riktiga ticks och checklista för mäklarvalet. |
+
+Kör du MT5 är `mt5/README.md` den du vill läsa. Pine-versionen är kvar för att
+den är snabbare att experimentera i — ändra en parameter, se resultatet på två
+sekunder. MT5 är där du verifierar på riktig tickdata innan pengar sätts in.
 
 ## Kom igång
 
@@ -119,16 +124,19 @@ som meddelandetext.
 
 ## Vägen vidare
 
-- **Steg 2 — halvautomatik.** Alert → webhook → liten server som lägger ordern
-  hos mäklaren. Snabbt att bygga, men TradingViews alerts kan dröja och i
-  sällsynta fall utebli. Duger för swing, är sämre för 30-sekundersgrafer.
-- **Steg 3 — riktig bot.** Antingen en MQL5 Expert Advisor som kör direkt i
-  MT5 (samma miljö som kontoutdraget i referensklippet), eller Python mot
-  mäklarens API med backtrader/vectorbt för testerna. Ingen TradingView i
-  loopen, kör på VPS, egen loggning och egna dödmansgrepp.
+Steg 2 (alert → webhook → order) hoppades över med flit. Den vägen har en
+onödig svag länk: TradingViews alerts kan dröja och i sällsynta fall utebli.
+Med MT5 räknar EA:n själv och behöver ingen bro.
 
-För steg 2 eller 3 behöver jag veta mäklare, instrument och kontostorlek —
-exekveringsdelen ser helt olika ut för MT5, IBKR och en kryptobörs.
+Kvar att göra, i takt med att testerna säger något:
+
+- **Nyhetsfilter** — pausa runt CPI, räntebesked och NFP.
+- **Partiell hemtagning** vid 1R, om tickdatan visar att det lönar sig.
+- **Loggning till fil** för att jämföra live mot backtest affär för affär.
+- **VPS-uppsättning** så att den inte hänger på att din dator är igång.
+
+Inget av det byggs på gissningar — först resultat från riktig tickdata, sedan
+beslut.
 
 ## Ansvar
 
