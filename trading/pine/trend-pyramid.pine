@@ -1,0 +1,250 @@
+//@version=6
+// Trend Pyramid — trendföljare med pyramidering, ATR-stop och sessionsfilter.
+//
+// Bygger på samma grundidé som strategierna i referensklippen: ett långsamt
+// trendfilter bestämmer vilket håll man får handla åt, en snabbare trendflip
+// ger insteget, och man skalar in i vinnare med hård stop under varje nivå.
+//
+// Kostnaderna är PÅSLAGNA som default (courtage + spread + slippage). Det är
+// medvetet: utan dem ser varje intradagsstrategi bättre ut än den är.
+// Sätt dem efter din egen mäklare innan du drar några slutsatser.
+
+strategy(
+     title                 = "Trend Pyramid",
+     shorttitle            = "TrendPyr",
+     overlay               = true,
+     pyramiding            = 4,
+     initial_capital       = 100000,
+     currency              = currency.USD,
+     default_qty_type      = strategy.fixed,
+     default_qty_value     = 1,
+     commission_type       = strategy.commission.cash_per_contract,
+     commission_value      = 1.0,
+     slippage              = 5,
+     calc_on_every_tick    = false,
+     process_orders_on_close = false,
+     margin_long           = 5,
+     margin_short          = 5)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Inställningar
+// ─────────────────────────────────────────────────────────────────────────────
+
+grpTrend  = "Trend"
+trendLen    = input.int(200,  "Trendfilter EMA",         minval=10,  group=grpTrend, tooltip="Långsamt filter. Long tillåts bara över, short bara under.")
+useSlope    = input.bool(true, "Kräv lutning på EMA:n",   group=grpTrend, tooltip="EMA:n måste peka åt samma håll som affären.")
+slopeLen    = input.int(10,   "Lutning mätt över (barer)", minval=1,  group=grpTrend)
+stFactor    = input.float(3.0, "Supertrend faktor",       minval=0.5, step=0.1, group=grpTrend)
+stAtrLen    = input.int(10,   "Supertrend ATR",           minval=1,  group=grpTrend)
+
+grpRisk   = "Risk"
+riskPct     = input.float(0.5, "Risk per insteg (% av kapital)", minval=0.01, step=0.05, group=grpRisk)
+atrLen      = input.int(14,   "ATR för stop",             minval=1,  group=grpRisk)
+stopAtrMult = input.float(1.5, "Initial stop (× ATR)",    minval=0.2, step=0.1, group=grpRisk)
+maxDailyDD  = input.float(3.0, "Max dagsförlust (%)",     minval=0.1, step=0.1, group=grpRisk, tooltip="Nås den stängs allt och inga nya insteg tas resten av dagen.")
+
+grpPyr    = "Pyramidering"
+maxAdds     = input.int(3,    "Antal påfyllnader",        minval=0, maxval=3, group=grpPyr)
+addStepAtr  = input.float(1.0, "Avstånd mellan påfyllnader (× ATR)", minval=0.1, step=0.1, group=grpPyr)
+addSizePct  = input.float(60.0, "Storlek på påfyllnad (% av första)", minval=1, maxval=200, step=5, group=grpPyr)
+trailAfter  = input.bool(true, "Flytta stop till supertrend efter första påfyllnaden", group=grpPyr)
+
+grpFilter = "Filter"
+useSession  = input.bool(true, "Handla bara i session",   group=grpFilter)
+sessTime    = input.session("0930-1600", "Session",       group=grpFilter)
+sessTz      = input.string("America/New_York", "Tidszon", options=["America/New_York", "Europe/Stockholm", "UTC"], group=grpFilter)
+flatAtClose = input.bool(true, "Stäng allt vid sessionsslut", group=grpFilter)
+minAtrPct   = input.float(0.05, "Minsta ATR (% av pris)", minval=0.0, step=0.01, group=grpFilter, tooltip="Filtrerar bort dödlägen där spreaden äter upp rörelsen.")
+maxTrades   = input.int(6,    "Max insteg per dag",       minval=1, group=grpFilter)
+
+grpDir    = "Riktning"
+allowLong   = input.bool(true, "Tillåt long",  group=grpDir)
+allowShort  = input.bool(true, "Tillåt short", group=grpDir)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Indikatorer
+// ─────────────────────────────────────────────────────────────────────────────
+
+ema    = ta.ema(close, trendLen)
+atr    = ta.atr(atrLen)
+[stLine, stDir] = ta.supertrend(stFactor, stAtrLen)
+
+// stDir: -1 = uppåtstrend, 1 = nedåtstrend
+dirUp   = stDir < 0
+flipUp   = dirUp and not dirUp[1]
+flipDown = not dirUp and dirUp[1]
+
+emaRising  = ema > ema[slopeLen]
+emaFalling = ema < ema[slopeLen]
+
+inSession  = not useSession or not na(time(timeframe.period, sessTime, sessTz))
+sessionEnd = useSession and not inSession and inSession[1]
+
+atrOk      = atr / close * 100.0 >= minAtrPct
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Dagsbokföring — förlusttak och antal insteg
+// ─────────────────────────────────────────────────────────────────────────────
+
+// dayofmonth i stället för ta.change(time("D")) — time("D") är na utanför
+// sessionen och gör då bytet osynligt.
+newDay = not na(dayofmonth[1]) and dayofmonth != dayofmonth[1]
+
+var float dayStartEquity = strategy.equity
+var int   tradesToday    = 0
+var bool  dayBlocked     = false
+
+if newDay
+    dayStartEquity := strategy.equity
+    tradesToday    := 0
+    dayBlocked     := false
+
+dayPnLPct = dayStartEquity > 0 ? (strategy.equity - dayStartEquity) / dayStartEquity * 100.0 : 0.0
+
+if dayPnLPct <= -maxDailyDD
+    dayBlocked := true
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Positionsstorlek — risken styr antalet kontrakt, inte tvärtom
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Kontrakt så att avståndet till stoppen kostar exakt riskPct av kapitalet.
+qtyForRisk(float stopDistance) =>
+    dist = math.max(stopDistance, syminfo.mintick)
+    riskAmount = strategy.equity * riskPct / 100.0
+    raw = riskAmount / (dist * syminfo.pointvalue)
+    math.max(raw, 0.0)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Positionsstate
+// ─────────────────────────────────────────────────────────────────────────────
+
+var float baseQty    = 0.0   // storleken på första insteget, påfyllnader mäts mot den
+var float lastAddPx  = na    // priset där senaste insteget skedde
+var float atrAtEntry = na    // ATR vid första insteget, styr avstånd till påfyllnad
+var int   addsDone   = 0
+var float stopPx     = na    // aktuell stop, flyttas aldrig mot positionen
+
+flat = strategy.position_size == 0
+
+if flat
+    baseQty    := 0.0
+    lastAddPx  := na
+    atrAtEntry := na
+    addsDone   := 0
+    stopPx     := na
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Insteg
+// ─────────────────────────────────────────────────────────────────────────────
+
+tradingOk = inSession and atrOk and not dayBlocked and tradesToday < maxTrades and barstate.isconfirmed
+
+longSetup  = allowLong  and flipUp   and close > ema and (not useSlope or emaRising)
+shortSetup = allowShort and flipDown and close < ema and (not useSlope or emaFalling)
+
+if tradingOk and flat and longSetup
+    stopCand = close - stopAtrMult * atr
+    q = qtyForRisk(close - stopCand)
+    if q > 0
+        baseQty    := q
+        atrAtEntry := atr
+        lastAddPx  := close
+        stopPx     := stopCand
+        addsDone   := 0
+        tradesToday += 1
+        strategy.entry("L", strategy.long, qty=q, comment="Long")
+
+if tradingOk and flat and shortSetup
+    stopCand = close + stopAtrMult * atr
+    q = qtyForRisk(stopCand - close)
+    if q > 0
+        baseQty    := q
+        atrAtEntry := atr
+        lastAddPx  := close
+        stopPx     := stopCand
+        addsDone   := 0
+        tradesToday += 1
+        strategy.entry("S", strategy.short, qty=q, comment="Short")
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Påfyllnad — bara i vinnare, och bara när trenden fortfarande pekar rätt
+// ─────────────────────────────────────────────────────────────────────────────
+
+canAdd = inSession and not dayBlocked and addsDone < maxAdds and not na(lastAddPx) and not na(atrAtEntry) and barstate.isconfirmed
+
+if canAdd and strategy.position_size > 0 and dirUp and close >= lastAddPx + addStepAtr * atrAtEntry
+    q = baseQty * addSizePct / 100.0
+    if q > 0
+        addsDone  += 1
+        lastAddPx := close
+        strategy.entry("L", strategy.long, qty=q, comment="Long pyr " + str.tostring(addsDone))
+
+if canAdd and strategy.position_size < 0 and not dirUp and close <= lastAddPx - addStepAtr * atrAtEntry
+    q = baseQty * addSizePct / 100.0
+    if q > 0
+        addsDone  += 1
+        lastAddPx := close
+        strategy.entry("S", strategy.short, qty=q, comment="Short pyr " + str.tostring(addsDone))
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Stop — dras med, aldrig tillbaka
+// ─────────────────────────────────────────────────────────────────────────────
+
+if strategy.position_size > 0
+    cand = trailAfter and addsDone > 0 ? math.max(stLine, strategy.position_avg_price - stopAtrMult * atr) : strategy.position_avg_price - stopAtrMult * atr
+    stopPx := na(stopPx) ? cand : math.max(stopPx, cand)
+    strategy.exit("L SL", from_entry="L", stop=stopPx, comment="Long SL")
+
+if strategy.position_size < 0
+    cand = trailAfter and addsDone > 0 ? math.min(stLine, strategy.position_avg_price + stopAtrMult * atr) : strategy.position_avg_price + stopAtrMult * atr
+    stopPx := na(stopPx) ? cand : math.min(stopPx, cand)
+    strategy.exit("S SL", from_entry="S", stop=stopPx, comment="Short SL")
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Utgångar
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Trenden vänder — ut, oavsett var stoppen ligger.
+if strategy.position_size > 0 and flipDown
+    strategy.close("L", comment="Long exit trendflip")
+
+if strategy.position_size < 0 and flipUp
+    strategy.close("S", comment="Short exit trendflip")
+
+// Dagens förlusttak nått — platt.
+if dayBlocked and strategy.position_size != 0
+    strategy.close_all(comment="Dagsstopp")
+
+// Inget över natten om sessionen är på.
+if flatAtClose and sessionEnd and strategy.position_size != 0
+    strategy.close_all(comment="Sessionsslut")
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Ritning
+// ─────────────────────────────────────────────────────────────────────────────
+
+plot(ema, "Trend EMA", color=color.new(color.blue, 0), linewidth=2)
+plot(stLine, "Supertrend", color=dirUp ? color.new(color.teal, 0) : color.new(color.maroon, 0), style=plot.style_linebr)
+plot(strategy.position_size != 0 ? stopPx : na, "Stop", color=color.new(color.red, 0), style=plot.style_linebr, linewidth=2)
+
+bgcolor(dayBlocked ? color.new(color.red, 92) : na, title="Dagsstopp")
+bgcolor(useSession and not inSession ? color.new(color.gray, 94) : na, title="Utanför session")
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Alerts — payload för webhook i nästa steg
+// ─────────────────────────────────────────────────────────────────────────────
+
+alertPayload(string action, string side) =>
+    '{"strategy":"trend-pyramid","action":"' + action + '","side":"' + side + '","symbol":"' + syminfo.ticker +
+     '","tf":"' + timeframe.period + '","price":' + str.tostring(close) +
+     ',"stop":' + str.tostring(na(stopPx) ? 0.0 : stopPx) +
+     ',"qty":' + str.tostring(math.abs(strategy.position_size)) +
+     ',"time":' + str.tostring(time) + '}'
+
+if strategy.position_size > 0 and strategy.position_size[1] <= 0
+    alert(alertPayload("entry", "long"), alert.freq_once_per_bar_close)
+if strategy.position_size < 0 and strategy.position_size[1] >= 0
+    alert(alertPayload("entry", "short"), alert.freq_once_per_bar_close)
+if strategy.position_size == 0 and strategy.position_size[1] != 0
+    alert(alertPayload("exit", strategy.position_size[1] > 0 ? "long" : "short"), alert.freq_once_per_bar_close)
