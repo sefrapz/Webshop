@@ -73,6 +73,12 @@ npx http-server -p 8000 -c-1 .   # eller: python3 -m http.server 8000
   tolv ritade färgerna används numera bara av mockup-reserven.
   Färg-id:n skiljer sig mellan plaggen, så slå aldrig upp en färg utan att
   veta vilket plagg det gäller.
+- **Produktsidan** har färgvalet i vänsterspalten under bilden (rubriken
+  `.picker-head`) och de tre numrerade stegen — storlek, motiv, placering — i
+  högerspalten. Lägger du till ett steg: numrera om `.step-index` så serien
+  fortsätter stämma. Infoblocket överst är `.product-head`: titel + dela-ikon,
+  pris med badges, leverantörstexten och `product.tagline` uppdelad på `·` till
+  chips. Skriver du en ny tagline: separera fakta med `·`.
 - **Konfiguratorn** har ett `configState`-objekt som nollställs vid produktbyte.
   Alla ändringar går genom `update()` inuti `renderProductPage()`; undantaget är
   motivval som ritar om hela sidan.
@@ -125,7 +131,11 @@ skicka den till användaren i stället för att beskriva den i ord:
 ```bash
 node tools/shot.mjs '#/produkt/hoodie'          # en vy
 node tools/shot.mjs '#/' '#/kassa' --mobile     # flera vyer, mobilbredd
+node tools/shot.mjs '#/produkt/hoodie' --mobile --scroll=1100   # under vikningen
 ```
+
+Använd `--scroll=` hellre än `--full` när något sitter långt ner: den sticky
+köpknappen hamnar mitt i bilden i en helsidesbild och skymmer det du vill se.
 
 Bilderna hamnar i `.shots/` (gitignorerad). Skicka dem med SendUserFile.
 

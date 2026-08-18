@@ -5,6 +5,7 @@
 
    node tools/shot.mjs '#/produkt/hoodie'
    node tools/shot.mjs '#/' '#/kassa' --mobile
+   node tools/shot.mjs '#/produkt/hoodie' --mobile --scroll=1400
 
    Startar en lokal server, renderar varje vy i Chromium och
    sparar PNG i .shots/.
@@ -23,6 +24,9 @@ const OUT = join(ROOT, '.shots');
 const args = process.argv.slice(2);
 const mobile = args.includes('--mobile');
 const full = args.includes('--full');
+/* --scroll=1200 skrollar ner innan bilden tas — för att se under vikningen
+   utan att fasta element (sticky köpknapp) hamnar mitt i en helsidesbild. */
+const scroll = Number((args.find(a => a.startsWith('--scroll=')) || '').split('=')[1] || 0);
 const routes = args.filter(a => !a.startsWith('--'));
 if (routes.length === 0) routes.push('#/');
 
@@ -76,6 +80,12 @@ for (const route of routes) {
   /* Routern ritar om vid hashchange; gå via location för vy 2 och framåt. */
   await page.evaluate(h => { if (location.hash !== h) location.hash = h; }, hash);
   await page.waitForTimeout(350);
+  if (scroll) {
+    /* html har scroll-behavior: smooth — hoppa direkt, annars hinner
+       bilden tas mitt i animeringen. */
+    await page.evaluate(y => window.scrollTo({ top: y, behavior: 'instant' }), scroll);
+    await page.waitForTimeout(400);
+  }
 
   const name = (hash.replace(/^#\/?/, '') || 'start').replace(/\//g, '-')
     + (mobile ? '-mobil' : '') + '.png';

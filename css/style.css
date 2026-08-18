@@ -35,7 +35,8 @@ img { display: block; max-width: 100%; }
 svg.garment { display: block; max-width: 100%; }
 svg svg { max-width: none; }
 a { color: inherit; text-decoration: none; }
-button { font-family: inherit; cursor: pointer; }
+button, input, textarea, select { font-family: inherit; color: inherit; }
+button { cursor: pointer; }
 
 /* Synligt fokus för tangentbord — men inte vid musklick. */
 :focus-visible {
@@ -247,8 +248,18 @@ body.no-scroll { overflow: hidden; }
   padding: 7px 14px; border-radius: 999px;
 }
 
+/* Rubrik över färgminiatyrerna — färgvalet är ett eget block, inte ett
+   numrerat steg, eftersom miniatyrerna ligger i vänsterspalten. */
+.picker-head {
+  display: flex; align-items: baseline; gap: 12px; margin-top: 22px;
+}
+.picker-head h3 {
+  font-size: .95rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase;
+}
+.picker-value { margin-left: auto; font-size: .85rem; font-weight: 600; color: var(--ink-soft); }
+
 .color-thumbs {
-  display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-top: 18px;
+  display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-top: 12px;
 }
 .color-thumb {
   background: var(--surface); border: 2px solid var(--line);
@@ -277,18 +288,50 @@ body.no-scroll { overflow: hidden; }
 .share-btn svg { flex-shrink: 0; }
 
 /* Höger: konfigurator */
+.product-head { padding-bottom: 4px; }
+.product-title-row { display: flex; align-items: flex-start; gap: 14px; }
 .config-col h1 {
-  font-size: clamp(1.9rem, 3.4vw, 2.6rem); font-weight: 800; letter-spacing: -.02em;
+  flex: 1; min-width: 0;
+  font-size: clamp(1.8rem, 3.2vw, 2.4rem); font-weight: 800; letter-spacing: -.02em;
   line-height: 1.08;
 }
-.product-tagline { color: var(--ink-soft); font-size: .9rem; margin: 10px 0 4px; }
-.product-price { font-size: 1.35rem; font-weight: 800; margin: 14px 0 6px; }
-.product-price small { font-size: .8rem; color: var(--ink-soft); font-weight: 500; }
-.product-desc { color: var(--ink-soft); font-size: .93rem; margin-bottom: 26px; }
+
+/* Dela-knappen är sekundär — ikon i hörnet, inte ett fält i flödet. */
+.share-btn {
+  flex-shrink: 0; width: 42px; height: 42px; border-radius: 50%;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+  display: flex; align-items: center; justify-content: center;
+  transition: border-color .15s, background .15s;
+}
+.share-btn:hover { border-color: var(--ink); background: var(--surface-2); }
+
+.price-row {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 14px;
+}
+.product-price { font-size: 1.7rem; font-weight: 800; letter-spacing: -.02em; }
+.price-badges { display: flex; gap: 6px; flex-wrap: wrap; }
+.badge {
+  font-size: .68rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  color: #2c6b3c; background: #e7f3ea; border-radius: 999px; padding: 5px 10px;
+  white-space: nowrap;
+}
+
+.product-desc { color: var(--ink-soft); font-size: .93rem; margin-top: 16px; }
+
+/* Plaggets fakta som chips i stället för en grå mening. */
+.product-specs {
+  list-style: none; display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px;
+}
+.product-specs li {
+  font-size: .75rem; font-weight: 600; color: var(--ink-soft);
+  background: var(--surface-2); border: 1px solid var(--line);
+  border-radius: 999px; padding: 5px 11px;
+}
 
 .config-step {
-  border-top: 1px solid var(--line); padding: 22px 0;
+  border-top: 1px solid var(--line); padding: 20px 0;
 }
+.config-col .config-step:first-of-type { margin-top: 24px; }
 .config-step-head {
   display: flex; align-items: center; gap: 12px; margin-bottom: 14px;
 }
@@ -301,12 +344,18 @@ body.no-scroll { overflow: hidden; }
 .config-step-head h3 { font-size: .95rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
 .config-step-head .step-value {
   margin-left: auto; font-size: .85rem; color: var(--ink-soft); font-weight: 600;
+  text-align: right;
 }
+.step-link {
+  font-size: .78rem; font-weight: 600; color: var(--ink-soft);
+  text-decoration: underline; white-space: nowrap; flex-shrink: 0;
+}
+.step-link:hover { color: var(--ink); }
 
-.size-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.size-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
 .size-btn {
-  min-width: 52px; padding: 10px 12px; border-radius: 10px;
-  border: 1.5px solid var(--line); background: var(--surface);
+  padding: 12px 6px; border-radius: 10px;
+  border: 1.5px solid var(--line); background: var(--surface); color: var(--ink);
   font-size: .85rem; font-weight: 700; transition: all .12s;
 }
 .size-btn:hover { border-color: var(--ink); }
@@ -736,6 +785,7 @@ body.no-scroll { overflow: hidden; }
   .icon-btn { width: 42px; height: 42px; }
 
   /* Köpknappen följer med i stället för att försvinna längst ner */
+  .config-col { padding-bottom: 4px; }
   .addtocart-wrap {
     position: sticky; bottom: 0; z-index: 20;
     padding: 14px 0 10px; margin-top: 8px;

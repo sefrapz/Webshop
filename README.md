@@ -22,7 +22,9 @@ python3 -m http.server 8000
 1. **Startsida** — fyra klickbara kategorier: T-shirt bas, Longsleeve t-shirt,
    Sweatshirt och Hoodie.
 2. **Produktsida** — stor produktbild med fram-/baksida och färgminiatyrer
-   (klick på miniatyr byter den stora bilden), storleksval samt antal.
+   (klick på miniatyr byter den stora bilden). Bredvid ligger infobladet med
+   pris, leverantörens produkttext och plaggets fakta, och därunder tre
+   numrerade steg: storlek och antal, motiv, placering.
    T-shirt bas finns i XS–5XL, övriga plagg i XS–3XL. Hoodien har 17
    fotograferade färger, de andra tre fyra var.
 3. **Motiv** — knapp som öppnar motivgalleriet. Motiven är riktiga
@@ -104,6 +106,7 @@ git:
 node tools/shot.mjs '#/produkt/hoodie'          # en vy
 node tools/shot.mjs '#/' '#/kassa' --mobile     # flera vyer, mobilbredd
 node tools/shot.mjs '#/' --full                 # hela sidan, inte bara vyporten
+node tools/shot.mjs '#/produkt/hoodie' --mobile --scroll=1100   # under vikningen
 ```
 
 Bilderna hamnar i `.shots/` (gitignorerad). Chromium finns förinstallerat i

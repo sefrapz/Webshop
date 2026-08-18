@@ -366,34 +366,43 @@ function renderProductPage(productId, params) {
             <div class="preview-badge" id="previewBadge"></div>
             <div id="previewSvg"></div>
           </div>
+          <div class="picker-head">
+            <h3>Färg</h3>
+            <span class="picker-value" id="colorValue"></span>
+          </div>
           <div class="color-thumbs" id="colorThumbs"></div>
-          <button class="share-btn" id="shareBtn">
-            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor"
-              stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
-              <path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/>
-            </svg>
-            Dela designen
-          </button>
         </div>
 
         <div class="config-col">
-          <h1>${product.name}</h1>
-          <p class="product-tagline">${product.tagline}</p>
-          <div class="product-price">${product.price} kr <small>· tryck &amp; frakt ingår</small></div>
-          <p class="product-desc">${product.desc}</p>
-
-          <div class="config-step done" id="stepColor">
-            <div class="config-step-head">
-              <span class="step-index">1</span><h3>Färg</h3>
-              <span class="step-value" id="colorValue"></span>
+          <header class="product-head">
+            <div class="product-title-row">
+              <h1>${product.name}</h1>
+              <button class="share-btn" id="shareBtn" aria-label="Dela designen" title="Dela designen">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                  stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+                  <path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/>
+                </svg>
+              </button>
             </div>
-          </div>
+            <div class="price-row">
+              <span class="product-price">${product.price} kr</span>
+              <span class="price-badges">
+                <span class="badge">Tryck ingår</span>
+                <span class="badge">Fri frakt</span>
+              </span>
+            </div>
+            <p class="product-desc">${product.desc}</p>
+            <ul class="product-specs">
+              ${product.tagline.split('·').map(t => `<li>${t.trim()}</li>`).join('')}
+            </ul>
+          </header>
 
           <div class="config-step" id="stepSize">
             <div class="config-step-head">
-              <span class="step-index">2</span><h3>Storlek &amp; antal</h3>
+              <span class="step-index">1</span><h3>Storlek</h3>
               <span class="step-value" id="sizeValue"></span>
+              <a class="step-link" href="#/storleksguide">Storleksguide</a>
             </div>
             <div class="size-grid" id="sizeGrid"></div>
             <div class="qty-row">
@@ -408,7 +417,7 @@ function renderProductPage(productId, params) {
 
           <div class="config-step" id="stepMotif">
             <div class="config-step-head">
-              <span class="step-index">3</span><h3>Motiv</h3>
+              <span class="step-index">2</span><h3>Motiv</h3>
               <span class="step-value" id="motifValue"></span>
             </div>
             <button class="motif-cta" id="motifBtn"></button>
@@ -416,7 +425,7 @@ function renderProductPage(productId, params) {
 
           <div class="config-step" id="stepPlacement">
             <div class="config-step-head">
-              <span class="step-index">4</span><h3>Placering</h3>
+              <span class="step-index">3</span><h3>Placering</h3>
               <span class="step-value" id="placementValue"></span>
             </div>
             <div class="placement-grid" id="placementGrid"></div>
