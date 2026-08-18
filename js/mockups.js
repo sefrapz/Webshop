@@ -317,24 +317,56 @@ function motifViewBox(motifId) {
 /* --------------------- FOTOGRAFERADE PLAGG --------------------- */
 
 /* Tryckytorna uttryckta i procent av fotots bredd. Alla foton är
-   normaliserade till samma rutnät, så samma procentsatser gäller varje färg.
-   Uppmätt på rutnätet: plaggets kropp är ~72 % av bildbredden och motsvarar
-   bröstvidden 58 cm i storlek M — alltså 1,24 % av bildbredden per centimeter.
-   Trycket är kvadratiskt, så höjden sätts av `aspect-ratio` i CSS och inte
-   av procent av bildhöjden (bilden är högre än den är bred). */
-const PHOTO_CM = 1.24;
+   normaliserade till samma rutnät per plagg, så samma procentsatser
+   gäller varje färg.
 
-const PHOTO_PRINT = {
-  hjarta: { cx: 64, top: 30 },
-  mage:   { cx: 50, top: 35 },
-  rygg:   { cx: 50, top: 33 },
+   `bodyPct` är plaggets synliga bredd i bilden, avläst på ett rutnät.
+   Plaggen är fotade på osynlig docka, så den synliga bredden är mindre än
+   plattmåttet — men eftersom trycket förhåller sig till samma synliga yta
+   som kunden ser, räknas tryckets bredd som
+
+       tryck-% = placeringens cm / bröstvidden i storlek M × bodyPct
+
+   Varje plagg är dessutom normaliserat var för sig och fyller sin egen
+   bild, så skalan är inte gemensam mellan plaggen — därav en post per
+   plagg i stället för en global konstant.
+
+   `top` är tryckytans överkant i procent av bildens HÖJD. Bredden är i
+   procent av BREDDEN och höjden sätts av `aspect-ratio` i CSS. */
+const PHOTO_GEOM = {
+  hoodie: {
+    bodyPct: 56,
+    print: {
+      hjarta: { cx: 63, top: 30 },
+      mage:   { cx: 50, top: 36 },
+      rygg:   { cx: 50, top: 32 },
+    },
+  },
+  tshirt: {
+    bodyPct: 60,
+    print: {
+      hjarta: { cx: 62, top: 17 },
+      mage:   { cx: 50, top: 26 },
+      rygg:   { cx: 50, top: 20 },
+    },
+  },
 };
 
-function getPhotoPrintRect(placementId) {
+/** Hur många procent av bildbredden en centimeter på plagget motsvarar. */
+function photoCmPct(productId) {
+  const geom = PHOTO_GEOM[productId];
+  const chart = SIZE_CHART[productId];
+  if (!geom || !chart) return null;
+  return geom.bodyPct / chart.rows.M[0];   // första kolumnen är bröstvidden
+}
+
+function getPhotoPrintRect(productId, placementId) {
   const pl = PLACEMENT_BY_ID[placementId];
-  const geo = PHOTO_PRINT[placementId];
-  if (!pl || !geo) return null;
-  const w = pl.cm * PHOTO_CM;
+  const geom = PHOTO_GEOM[productId];
+  const geo = geom && geom.print[placementId];
+  const cm = photoCmPct(productId);
+  if (!pl || !geo || !cm) return null;
+  const w = pl.cm * cm;
   return { left: geo.cx - w / 2, top: geo.top, w, side: pl.side };
 }
 
@@ -347,7 +379,7 @@ function renderPhotoGarment(productId, side, color, opts = {}) {
 
   let overlay = '';
   if (opts.motifId && opts.placementId) {
-    const rect = getPhotoPrintRect(opts.placementId);
+    const rect = getPhotoPrintRect(productId, opts.placementId);
     const motif = MOTIF_BY_ID[opts.motifId];
     if (rect && motif && rect.side === side) {
       overlay = `
@@ -360,7 +392,7 @@ function renderPhotoGarment(productId, side, color, opts = {}) {
   let areas = '';
   if (opts.showPrintAreas) {
     areas = PLACEMENTS.filter(p => PLACEMENT_BY_ID[p.id].side === side).map(p => {
-      const r = getPhotoPrintRect(p.id);
+      const r = getPhotoPrintRect(productId, p.id);
       return `<span class="print-outline" style="left:${r.left}%;top:${r.top}%;width:${r.w}%"></span>`;
     }).join('');
   }

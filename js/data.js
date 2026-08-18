@@ -37,8 +37,11 @@ const PRODUCTS = {
     id: 'tshirt',
     name: 'T-shirt',
     price: 249,
-    tagline: 'Klassisk passform · 100 % ekologisk bomull · 185 g/m²',
-    desc: 'Vår klassiska t-shirt i tjock, kammad ekologisk bomull. Förstärkta axelsömmar och en siluett som håller formen tvätt efter tvätt.',
+    /* Fyra fotograferade färger — se TSHIRT_COLORS nedan. */
+    get colors() { return TSHIRT_COLORS; },
+    photos: 'assets/tshirt',
+    tagline: 'Unisex XS–5XL · 150 gsm ringspunnen bomull',
+    desc: 'Modern modell tillverkad av ringspunnen, kammad och certifierad ekologisk bomull med en mjuk och len känsla, 150 gsm.',
   },
   sweatshirt: {
     id: 'sweatshirt',
@@ -98,6 +101,13 @@ const HOODIE_COLORS = [
   { id: 'gron',       name: 'Grön',         hex: '#617f67' },
   { id: 'oliv',       name: 'Oliv',         hex: '#787461' },
   { id: 'rosa',       name: 'Rosa',         hex: '#d68189' },
+];
+
+const TSHIRT_COLORS = [
+  { id: 'vit',        name: 'Vit',        hex: '#f0f0f0' },
+  { id: 'gramelerad', name: 'Gråmelerad', hex: '#9b9b9b' },
+  { id: 'morkgra',    name: 'Mörkgrå',    hex: '#585856' },
+  { id: 'marin',      name: 'Marinblå',   hex: '#232f47' },
 ];
 
 /** Färger för ett plagg. Saknas egna används de tolv standardfärgerna. */

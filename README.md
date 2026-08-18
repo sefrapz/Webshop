@@ -54,14 +54,14 @@ dialoger, fokus hålls kvar i dem och återgår dit det kom ifrån.
 | `js/mockups.js` | SVG-motor för mockuperna + foto-rendering av hoodien |
 | `js/app.js` | Hash-router, konfigurator, varukorg (localStorage), kassa |
 
-Hoodien visas med riktiga produktfoton — 17 färger, fram och bak — medan
-övriga plagg ritas som programmatiskt genererad SVG.
+Hoodien och t-shirten visas med riktiga produktfoton — 17 respektive 4 färger,
+fram och bak — medan övriga plagg ritas som programmatiskt genererad SVG.
 Motivet läggs i båda fallen ovanpå plagget i en tryckyta som är skalad mot
 plaggets verkliga bröstvidd, så 22 × 22 cm blir 22 cm på riktigt.
 
-Fotona ligger i `assets/hoodie/` som WebP och är normaliserade till samma
-rutnät — källbilderna var beskurna olika, och utan normalisering hamnar
-trycket olika på olika färger.
+Fotona ligger i `assets/<plagg>/` som WebP och normaliseras med
+`tools/photos.mjs` — källbilderna är beskurna olika, och utan normalisering
+hamnar trycket olika på olika färger.
 Vill man byta ut fler plagg mot foton: lägg bilderna i `assets/<plagg>/`,
 peka `photos` dit i `PRODUCTS` och ge plagget egna `colors`. `renderGarment()`
 väljer sedan fotovägen automatiskt.
