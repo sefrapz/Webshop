@@ -25,5 +25,17 @@ jobs:
         with:
           fetch-depth: 0
 
+      # Utan detta kan en besökare sitta kvar på en cachad js/data.js medan
+      # bilderna redan bytts — plagg visas då som mockup fast fotona finns.
+      - name: Versionsstämpla CSS och JS
+        run: |
+          SHA=$(git rev-parse --short HEAD)
+          sed -i -E "s|(href=\"css/style\.css)\"|\1?v=$SHA\"|" index.html
+          sed -i -E "s|(src=\"js/[a-z]+\.js)\"|\1?v=$SHA\"|g" index.html
+          grep -c "?v=$SHA" index.html
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "Versionsstämpla tillgångarna för $SHA"
+
       - name: Spegla main till gh-pages
         run: git push --force origin HEAD:refs/heads/gh-pages

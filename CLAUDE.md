@@ -128,3 +128,9 @@ Pusha till `main` — inget mer. Workflowen `.github/workflows/mirror-to-gh-page
 speglar `main` till `gh-pages`, som är den branch GitHub Pages bygger från.
 Sajten ligger på https://sefrapz.github.io/Webshop/ och uppdateras inom en
 minut eller två. Rör inte `gh-pages` för hand — den skrivs över vid varje push.
+
+Speglingen stämplar `?v=<commit>` på CSS- och JS-länkarna i `index.html`
+innan den pushar. `gh-pages` är därför inte längre en exakt kopia av `main`
+utan har en extra commit ovanpå. Utan stämpeln kan en besökare sitta kvar på
+en cachad `js/data.js` medan bilderna redan bytts, och plagg visas då som
+mockup fast fotona finns.

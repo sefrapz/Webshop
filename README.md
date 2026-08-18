@@ -82,8 +82,9 @@ Shoppen ligger live på <https://sefrapz.github.io/Webshop/>. Pusha till `main`
 `main` till `gh-pages`, som är den branch GitHub Pages bygger från, och sajten
 uppdateras inom någon minut.
 
-`gh-pages` är alltså en ren spegel och skrivs över vid varje push. Gör aldrig
-ändringar direkt där.
+`gh-pages` skrivs över vid varje push — gör aldrig ändringar direkt där.
+Speglingen lägger på `?v=<commit>` på CSS- och JS-länkarna så att en besökare
+inte blir kvar på en cachad version när bilder eller kod ändrats.
 
 ## Utveckla från mobilen
 
