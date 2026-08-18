@@ -51,8 +51,10 @@ const PRODUCTS = {
     id: 'hoodie',
     name: 'Hoodie',
     price: 449,
-    tagline: 'Oversized passform · borstad insida · 350 g/m²',
-    desc: 'En tung premiumhoodie med dubbelt tyg i luvan, känguruficka och borstad insida. Trycket appliceras innan plagget sys — för ett resultat som håller.',
+    /* Hoodien går bara upp till 3XL — de övriga plaggen finns i hela XS–5XL. */
+    sizes: ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'],
+    tagline: 'Unisex passform · certifierad ekologisk bomull · 300 g/m²',
+    desc: 'En tung tretrådig hoodie på 300 g/m² i certifierad ekologisk bomull och certifierad återvunnen polyester. Tyget är dubbelinfärgat och förkrympt — färgen sitter kvar och plagget behåller formen tvätt efter tvätt, även i 60 grader. Tidlöst snitt med mjuk huva, rymlig framficka och en halvmåne i nacken som förstärker sömmen.',
   },
   longsleeve: {
     id: 'longsleeve',
@@ -62,6 +64,11 @@ const PRODUCTS = {
     desc: 'Långärmad tröja i tät singeljersey med ribbade muddar. Perfekt basplagg året om — och en utmärkt duk för ditt motiv.',
   },
 };
+
+/** Storlekar för ett plagg. Saknas `sizes` finns plagget i hela XS–5XL. */
+function sizesFor(productId) {
+  return (PRODUCTS[productId] && PRODUCTS[productId].sizes) || SIZES;
+}
 
 /* ---------------------------------------------------------
    Storleksguide — plaggmått i cm, mätta på plagget som det
@@ -87,7 +94,7 @@ const SIZE_CHART = {
     columns: ['Bröstvidd', 'Längd', 'Ärmlängd'],
     rows: {
       XS: [52, 64, 60], S: [55, 66, 61], M: [58, 68, 62], L: [61, 70, 63], XL: [64, 72, 64],
-      '2XL': [67, 74, 65], '3XL': [70, 76, 66], '4XL': [73, 78, 67], '5XL': [76, 80, 68],
+      '2XL': [67, 74, 65], '3XL': [70, 76, 66],
     },
   },
   longsleeve: {

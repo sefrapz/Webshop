@@ -314,7 +314,7 @@ function applyDesignParams(params) {
   const farg = params.get('farg');
   if (farg && COLOR_BY_ID[farg]) s.color = farg;
   const stl = params.get('stl');
-  if (stl && SIZES.includes(stl)) s.size = stl;
+  if (stl && sizesFor(s.product).includes(stl)) s.size = stl;
   const motiv = params.get('motiv');
   if (motiv && MOTIF_BY_ID[motiv]) s.motif = motiv;
   const plats = params.get('plats');
@@ -446,7 +446,7 @@ function renderProductPage(productId, params) {
 
   /* --- storlekar --- */
   const sizeGrid = document.getElementById('sizeGrid');
-  sizeGrid.innerHTML = SIZES.map(sz =>
+  sizeGrid.innerHTML = sizesFor(productId).map(sz =>
     `<button class="size-btn ${s.size === sz ? 'selected' : ''}" data-size="${sz}"
       aria-pressed="${s.size === sz}" aria-label="Storlek ${sz}">${sz}</button>`).join('');
   sizeGrid.querySelectorAll('[data-size]').forEach(b => b.onclick = () => {
@@ -874,7 +874,7 @@ function renderSizeGuidePage() {
               <tr><th scope="col">Storlek</th>${chart.columns.map(c => `<th scope="col">${c}</th>`).join('')}</tr>
             </thead>
             <tbody>
-              ${SIZES.map(sz => `
+              ${sizesFor(id).map(sz => `
                 <tr>
                   <th scope="row">${sz}</th>
                   ${chart.rows[sz].map(v => `<td>${v} cm</td>`).join('')}

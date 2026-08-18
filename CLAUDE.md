@@ -74,6 +74,9 @@ till en ny dialog:
 - Nya motiv läggs i `MOTIFS` i `js/data.js` med `viewBox 0 0 100 100` — och i
   `MOTIF_BOX` med sin uppmätta yta.
 - Nya färger läggs i `COLORS`; mockupmotorn tar hex rakt av, inget mer behövs.
+- Storlekar är per plagg: `sizesFor()` i `js/data.js` returnerar plaggets
+  `sizes` om det har några, annars hela `SIZES`. Hoodien går bara till 3XL.
+  Både storleksrutnätet, storleksguiden och `applyDesignParams()` går via den.
 - Nytt plagg kräver fyra saker: post i `PRODUCTS`, rad i `SIZE_CHART`, kropp och
   detaljer i `js/mockups.js` med en gren i `renderGarment()`, samt värden i
   `UNITS_PER_CM` och `PRINT_TOP`. Glöm inte länkarna i `index.html`.
