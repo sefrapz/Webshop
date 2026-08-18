@@ -20,6 +20,7 @@ npx http-server -p 8000 -c-1 .   # eller: python3 -m http.server 8000
 | `js/mockups.js` | SVG-motor + foto-rendering av hoodien |
 | `assets/hoodie/` | 17 färger × fram/bak/miniatyr som WebP |
 | `assets/tshirt/` | 4 färger × fram/bak/miniatyr som WebP |
+| `assets/sweatshirt/` | 4 färger × fram/bak/miniatyr som WebP |
 | `tools/photos.mjs` | Normaliserar nya produktfoton till rutnätet |
 | `js/app.js` | Hash-router, konfigurator, varukorg (localStorage), kassa |
 
@@ -45,7 +46,8 @@ npx http-server -p 8000 -c-1 .   # eller: python3 -m http.server 8000
   uppmätta ytan i `MOTIF_BOX` och skalar motivets största sida till hela
   rutan. Utan det ritas t.ex. kaktusen (38 av 100 enheter bred) i en tredjedel
   av utlovade 22 cm. Nytt motiv ⇒ mät det och lägg in i `MOTIF_BOX`.
-- **Hoodien och t-shirten visas som riktiga foton**, övriga plagg som SVG-mockup.
+- **Hoodien, sweatshirten och t-shirten visas som riktiga foton**; långärmad
+  är det enda plagget kvar som SVG-mockup.
   `renderGarment()` väljer väg: får den ett färg*objekt* och plagget har
   `photos` i `PRODUCTS` blir det `renderPhotoGarment()` med `<img>` plus en
   tryckyta lagd ovanpå i procent. Får den bara en hex-sträng ritas mockupen.
@@ -60,8 +62,8 @@ npx http-server -p 8000 -c-1 .   # eller: python3 -m http.server 8000
   på osynlig docka och normaliserade var för sig, så skalan är *inte*
   gemensam mellan plaggen — nytt fotograferat plagg kräver en egen post.
 - **Färger är per plagg.** `colorsFor()` och `colorById()` i `js/data.js` —
-  hoodien har `HOODIE_COLORS` (17 fotograferade), t-shirten `TSHIRT_COLORS`
-  (4), övriga de tolv i `COLORS`.
+  hoodien har `HOODIE_COLORS` (17 fotograferade), t-shirten och sweatshirten
+  fyra var, långärmad de tolv i `COLORS`.
   Färg-id:n skiljer sig mellan plaggen, så slå aldrig upp en färg utan att
   veta vilket plagg det gäller.
 - **Konfiguratorn** har ett `configState`-objekt som nollställs vid produktbyte.

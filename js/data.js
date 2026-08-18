@@ -47,8 +47,12 @@ const PRODUCTS = {
     id: 'sweatshirt',
     name: 'Sweatshirt',
     price: 379,
-    tagline: 'Rak passform · ribbad mudd och midja · 320 g/m²',
-    desc: 'Klassisk collegetröja i tjock, borstad bomullsmix med ribbad krage, muddar och midja. Håller formen även efter många tvättar — och sitter lika bra över en skjorta som ensam.',
+    sizes: ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'],
+    /* Fyra fotograferade färger — se SWEATSHIRT_COLORS nedan. */
+    get colors() { return SWEATSHIRT_COLORS; },
+    photos: 'assets/sweatshirt',
+    tagline: 'Unisex XS–3XL · borstad mjuk insida',
+    desc: 'Den avslappnade passformen gör den perfekt för vardagsanvändning, rund hals, borstad mjuk insida av certifierad ekologisk bomull och certifierad återvunnen polyester gör den bekväm både i look och känsla.',
   },
   hoodie: {
     id: 'hoodie',
@@ -103,6 +107,13 @@ const HOODIE_COLORS = [
   { id: 'rosa',       name: 'Rosa',         hex: '#d68189' },
 ];
 
+const SWEATSHIRT_COLORS = [
+  { id: 'gramelerad', name: 'Gråmelerad', hex: '#b4b4b4' },
+  { id: 'stalgra',    name: 'Stålgrå',    hex: '#5f5f5f' },
+  { id: 'antracit',   name: 'Antracit',   hex: '#3f3f3f' },
+  { id: 'marin',      name: 'Marinblå',   hex: '#2b3346' },
+];
+
 const TSHIRT_COLORS = [
   { id: 'vit',        name: 'Vit',        hex: '#f0f0f0' },
   { id: 'gramelerad', name: 'Gråmelerad', hex: '#9b9b9b' },
@@ -142,7 +153,7 @@ const SIZE_CHART = {
     columns: ['Bröstvidd', 'Längd', 'Ärmlängd'],
     rows: {
       XS: [49, 65, 60], S: [52, 67, 61], M: [55, 69, 62], L: [58, 71, 63], XL: [61, 73, 64],
-      '2XL': [64, 75, 65], '3XL': [67, 77, 66], '4XL': [70, 79, 67], '5XL': [73, 81, 68],
+      '2XL': [64, 75, 65], '3XL': [67, 77, 66],
     },
   },
   hoodie: {

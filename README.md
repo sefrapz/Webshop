@@ -23,8 +23,9 @@ python3 -m http.server 8000
    Sweatshirt och Hoodie.
 2. **Produktsida** — stor produktbild med fram-/baksida och färgminiatyrer
    (klick på miniatyr byter den stora bilden), storleksval samt antal.
-   Hoodien finns i 17 fotograferade färger och XS–3XL, t-shirten i 4 och
-   XS–5XL. Sweatshirt och långärmad ritas som mockup i 12 färger, XS–5XL.
+   Hoodie och sweatshirt finns i XS–3XL, t-shirt och långärmad i XS–5XL.
+   Hoodien har 17 fotograferade färger, t-shirt och sweatshirt fyra var,
+   långärmad tolv ritade.
 3. **Motiv** — knapp som öppnar ett galleri med 25 motiv.
 4. **Placering** — Hjärta 10 × 10 cm, Mage 22 × 22 cm eller Rygg 22 × 22 cm.
 5. **Live-förhandsvisning** — plagget renderas i vald färg med valt motiv på
@@ -55,8 +56,9 @@ dialoger, fokus hålls kvar i dem och återgår dit det kom ifrån.
 | `js/mockups.js` | SVG-motor för mockuperna + foto-rendering av hoodien |
 | `js/app.js` | Hash-router, konfigurator, varukorg (localStorage), kassa |
 
-Hoodien och t-shirten visas med riktiga produktfoton — 17 respektive 4 färger,
-fram och bak — medan övriga plagg ritas som programmatiskt genererad SVG.
+Hoodie, sweatshirt och t-shirt visas med riktiga produktfoton — 17, 4 och 4
+färger, fram och bak. Långärmad ritas fortfarande som programmatiskt
+genererad SVG.
 Motivet läggs i båda fallen ovanpå plagget i en tryckyta som är skalad mot
 plaggets verkliga bröstvidd, så 22 × 22 cm blir 22 cm på riktigt.
 
