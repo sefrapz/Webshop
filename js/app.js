@@ -229,13 +229,18 @@ window.addEventListener('hashchange', route);
 /* ------------------------- Startsida ------------------------- */
 
 function renderHomePage() {
+  /* Färgobjekt, inte hex — då plockar renderGarment() plaggets foto.
+     Priset hämtas ur PRODUCTS så korten aldrig hamnar i otakt med kassan. */
   const cats = [
-    { id: 'tshirt', color: '#28345c', note: 'från 249 kr' },
-    { id: 'longsleeve', color: '#77755b', note: 'från 299 kr' },
-    { id: 'sweatshirt', color: '#722336', note: 'från 379 kr' },
-    /* Hoodien har riktiga foton — färg-id i stället för hex ger fotot. */
-    { id: 'hoodie', color: colorById('hoodie', 'antracit'), note: 'från 449 kr' },
-  ];
+    { id: 'tshirt', color: 'marin' },
+    { id: 'longsleeve', color: 'svart' },
+    { id: 'sweatshirt', color: 'marin' },
+    { id: 'hoodie', color: 'antracit' },
+  ].map(c => ({
+    ...c,
+    color: colorById(c.id, c.color) || colorsFor(c.id)[0],
+    note: `från ${PRODUCTS[c.id].price} kr`,
+  }));
   app.innerHTML = `
     <section class="hero">
       <div class="hero-kicker">Tryckt för hand · Levereras inom 3–5 dagar</div>
