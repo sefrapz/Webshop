@@ -327,6 +327,8 @@ body.no-scroll { overflow: hidden; }
   background: var(--surface-2); border: 1px solid var(--line);
   border-radius: 999px; padding: 5px 11px;
 }
+/* Taglinen är skriven som löpande text — versalisera varje chip. */
+.product-specs li::first-letter { text-transform: uppercase; }
 
 .config-step {
   border-top: 1px solid var(--line); padding: 20px 0;
