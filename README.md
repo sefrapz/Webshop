@@ -21,8 +21,9 @@ python3 -m http.server 8000
 
 1. **Startsida** — fyra klickbara kategorier: T-shirt, Långärmad t-shirt,
    Sweatshirt och Hoodie.
-2. **Produktsida** — stor produktbild med fram-/baksida, 12 färgminiatyrer
-   (klick på miniatyr byter den stora bilden), storleksval XS–5XL samt antal.
+2. **Produktsida** — stor produktbild med fram-/baksida och färgminiatyrer
+   (klick på miniatyr byter den stora bilden), storleksval samt antal.
+   Hoodien finns i 17 färger och XS–3XL, övriga plagg i 12 färger och XS–5XL.
 3. **Motiv** — knapp som öppnar ett galleri med 25 motiv.
 4. **Placering** — Hjärta 10 × 10 cm, Mage 22 × 22 cm eller Rygg 22 × 22 cm.
 5. **Live-förhandsvisning** — plagget renderas i vald färg med valt motiv på
@@ -35,7 +36,7 @@ Därtill finns **Storleksguide**, **Leverans & retur** och **Kontakta oss**
 under `#/storleksguide`, `#/leverans` och `#/kontakt`.
 
 **Designen går att dela.** Valen ligger i adressfältet, så en länk som
-`#/produkt/hoodie?farg=svart&motiv=tiger&plats=rygg` öppnar exakt det plagget
+`#/produkt/hoodie?farg=antracit&motiv=tiger&plats=rygg` öppnar exakt det plagget
 hos mottagaren. Knappen *Dela designen* använder mobilens delningsmeny när den
 finns och kopierar annars länken. Designen överlever också omladdning.
 
@@ -49,7 +50,7 @@ dialoger, fokus hålls kvar i dem och återgår dit det kom ifrån.
 | --- | --- |
 | `index.html` | Skal: header, footer, varukorgs-drawer, motiv-modal |
 | `css/style.css` | Hela designsystemet, responsivt ned till mobil |
-| `js/data.js` | 4 produkter, 12 färger, storlekar, 3 placeringar, 25 motiv (inline-SVG) |
+| `js/data.js` | 4 produkter, färger och storlekar per plagg, 3 placeringar, 25 motiv |
 | `js/mockups.js` | SVG-motor för mockuperna + foto-rendering av hoodien |
 | `js/app.js` | Hash-router, konfigurator, varukorg (localStorage), kassa |
 
@@ -61,8 +62,9 @@ plaggets verkliga bröstvidd, så 22 × 22 cm blir 22 cm på riktigt.
 Fotona ligger i `assets/hoodie/` som WebP och är normaliserade till samma
 rutnät — källbilderna var beskurna olika, och utan normalisering hamnar
 trycket olika på olika färger.
-Vill man ersätta mockupsen med riktiga produktfoton byts bara
-`renderGarment()` ut mot `<img>`-element per färg/sida.
+Vill man byta ut fler plagg mot foton: lägg bilderna i `assets/<plagg>/`,
+peka `photos` dit i `PRODUCTS` och ge plagget egna `colors`. `renderGarment()`
+väljer sedan fotovägen automatiskt.
 
 ## Klarna på riktigt
 
