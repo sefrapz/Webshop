@@ -342,6 +342,14 @@ const PHOTO_GEOM = {
       rygg:   { cx: 50, top: 32 },
     },
   },
+  longsleeve: {
+    bodyPct: 65,
+    print: {
+      hjarta: { cx: 62, top: 17 },
+      mage:   { cx: 50, top: 26 },
+      rygg:   { cx: 50, top: 20 },
+    },
+  },
   sweatshirt: {
     bodyPct: 62,
     print: {

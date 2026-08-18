@@ -68,10 +68,14 @@ const PRODUCTS = {
   },
   longsleeve: {
     id: 'longsleeve',
-    name: 'Långärmad t-shirt',
+    name: 'Longsleeve t-shirt',
     price: 299,
-    tagline: 'Klassisk passform · ribbade muddar · 205 g/m²',
-    desc: 'Långärmad tröja i tät singeljersey med ribbade muddar. Perfekt basplagg året om — och en utmärkt duk för ditt motiv.',
+    sizes: ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'],
+    /* Fyra färgställningar — vit kropp, färgad ärm. Se LONGSLEEVE_COLORS. */
+    get colors() { return LONGSLEEVE_COLORS; },
+    photos: 'assets/longsleeve',
+    tagline: 'Unisex XS–3XL · raglanärm · enzymtvättad',
+    desc: 'Tröjan är tillverkad av premium kammad, certifierad ekologisk bomull. Den har genomgått en enzymtvätt för en mjuk känsla och långvarig hållbarhet. T-shirten har en tvåfärgad design med raglanärmar och är försedd med egen ribb i halsringningen samt ärmslut med muddar.',
   },
 };
 
@@ -105,6 +109,13 @@ const HOODIE_COLORS = [
   { id: 'gron',       name: 'Grön',         hex: '#617f67' },
   { id: 'oliv',       name: 'Oliv',         hex: '#787461' },
   { id: 'rosa',       name: 'Rosa',         hex: '#d68189' },
+];
+
+const LONGSLEEVE_COLORS = [
+  { id: 'svart', name: 'Vit / Svart',     hex: '#2f2f2f' },
+  { id: 'gron',  name: 'Vit / Mörkgrön',  hex: '#2d3a33' },
+  { id: 'marin', name: 'Vit / Marinblå',  hex: '#24374f' },
+  { id: 'khaki', name: 'Vit / Khaki',     hex: '#8a7a63' },
 ];
 
 const SWEATSHIRT_COLORS = [
@@ -167,7 +178,7 @@ const SIZE_CHART = {
     columns: ['Bröstvidd', 'Längd', 'Ärmlängd'],
     rows: {
       XS: [46, 66, 60], S: [49, 68, 61], M: [52, 70, 62], L: [55, 72, 63], XL: [58, 74, 64],
-      '2XL': [61, 76, 65], '3XL': [64, 78, 66], '4XL': [67, 80, 67], '5XL': [70, 82, 68],
+      '2XL': [61, 76, 65], '3XL': [64, 78, 66],
     },
   },
 };

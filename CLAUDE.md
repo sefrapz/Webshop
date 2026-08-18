@@ -21,6 +21,7 @@ npx http-server -p 8000 -c-1 .   # eller: python3 -m http.server 8000
 | `assets/hoodie/` | 17 färger × fram/bak/miniatyr som WebP |
 | `assets/tshirt/` | 4 färger × fram/bak/miniatyr som WebP |
 | `assets/sweatshirt/` | 4 färger × fram/bak/miniatyr som WebP |
+| `assets/longsleeve/` | 4 färgställningar × fram/bak/miniatyr som WebP |
 | `tools/photos.mjs` | Normaliserar nya produktfoton till rutnätet |
 | `js/app.js` | Hash-router, konfigurator, varukorg (localStorage), kassa |
 
@@ -46,8 +47,9 @@ npx http-server -p 8000 -c-1 .   # eller: python3 -m http.server 8000
   uppmätta ytan i `MOTIF_BOX` och skalar motivets största sida till hela
   rutan. Utan det ritas t.ex. kaktusen (38 av 100 enheter bred) i en tredjedel
   av utlovade 22 cm. Nytt motiv ⇒ mät det och lägg in i `MOTIF_BOX`.
-- **Hoodien, sweatshirten och t-shirten visas som riktiga foton**; långärmad
-  är det enda plagget kvar som SVG-mockup.
+- **Alla fyra plagg visas som riktiga foton.** SVG-mockuparna finns kvar som
+  reserv och används om ett plagg saknar `photos` — praktiskt när ett nytt
+  plagg läggs till innan fotona finns.
   `renderGarment()` väljer väg: får den ett färg*objekt* och plagget har
   `photos` i `PRODUCTS` blir det `renderPhotoGarment()` med `<img>` plus en
   tryckyta lagd ovanpå i procent. Får den bara en hex-sträng ritas mockupen.
@@ -62,8 +64,8 @@ npx http-server -p 8000 -c-1 .   # eller: python3 -m http.server 8000
   på osynlig docka och normaliserade var för sig, så skalan är *inte*
   gemensam mellan plaggen — nytt fotograferat plagg kräver en egen post.
 - **Färger är per plagg.** `colorsFor()` och `colorById()` i `js/data.js` —
-  hoodien har `HOODIE_COLORS` (17 fotograferade), t-shirten och sweatshirten
-  fyra var, långärmad de tolv i `COLORS`.
+  hoodien har `HOODIE_COLORS` (17), övriga plagg fyra var. `COLORS` med de
+  tolv ritade färgerna används numera bara av mockup-reserven.
   Färg-id:n skiljer sig mellan plaggen, så slå aldrig upp en färg utan att
   veta vilket plagg det gäller.
 - **Konfiguratorn** har ett `configState`-objekt som nollställs vid produktbyte.
@@ -101,9 +103,10 @@ till en ny dialog:
 - Storlekar är per plagg: `sizesFor()` i `js/data.js` returnerar plaggets
   `sizes` om det har några, annars hela `SIZES`. Hoodien går bara till 3XL.
   Både storleksrutnätet, storleksguiden och `applyDesignParams()` går via den.
-- Nytt plagg kräver fyra saker: post i `PRODUCTS`, rad i `SIZE_CHART`, kropp och
-  detaljer i `js/mockups.js` med en gren i `renderGarment()`, samt värden i
-  `UNITS_PER_CM` och `PRINT_TOP`. Glöm inte länkarna i `index.html`.
+- Nytt plagg med foton: post i `PRODUCTS` med `colors`, `sizes` och `photos`,
+  rad i `SIZE_CHART`, post i `PHOTO_GEOM`, bilderna genom `tools/photos.mjs`
+  och länkar i `index.html`. Utan foton krävs i stället kropp och detaljer i
+  `js/mockups.js` plus värden i `UNITS_PER_CM` och `PRINT_TOP`.
 - Nämn inte tryckteknik i UI-texter.
 - Håll det beroendefritt — inget byggsteg, inga npm-paket i klienten.
 
