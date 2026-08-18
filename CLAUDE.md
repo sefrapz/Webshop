@@ -16,8 +16,9 @@ npx http-server -p 8000 -c-1 .   # eller: python3 -m http.server 8000
 | --- | --- |
 | `index.html` | Skal: header, footer, varukorgs-drawer, motiv-modal, toast |
 | `css/style.css` | Designsystem i CSS-variabler, sektioner i samma ordning som vyerna |
-| `js/data.js` | 4 produkter, 12 färger, 9 storlekar, 3 placeringar, 25 motiv, storleksguide |
-| `js/mockups.js` | SVG-motor: ritar plaggen i `viewBox 0 0 600 700` |
+| `js/data.js` | 4 produkter, färger, storlekar, 3 placeringar, 25 motiv, storleksguide |
+| `js/mockups.js` | SVG-motor + foto-rendering av hoodien |
+| `assets/hoodie/` | 17 färger × fram/bak/miniatyr som WebP |
 | `js/app.js` | Hash-router, konfigurator, varukorg (localStorage), kassa |
 
 ## Så hänger det ihop
@@ -42,6 +43,21 @@ npx http-server -p 8000 -c-1 .   # eller: python3 -m http.server 8000
   uppmätta ytan i `MOTIF_BOX` och skalar motivets största sida till hela
   rutan. Utan det ritas t.ex. kaktusen (38 av 100 enheter bred) i en tredjedel
   av utlovade 22 cm. Nytt motiv ⇒ mät det och lägg in i `MOTIF_BOX`.
+- **Hoodien visas som riktiga foton**, övriga plagg som SVG-mockup.
+  `renderGarment()` väljer väg: får den ett färg*objekt* och plagget har
+  `photos` i `PRODUCTS` blir det `renderPhotoGarment()` med `<img>` plus en
+  tryckyta lagd ovanpå i procent. Får den bara en hex-sträng ritas mockupen.
+- **Fotona är normaliserade** till samma rutnät (800 × 1150, plagget skalat
+  till 742 px brett och toppen på y = 22). Källbilderna var beskurna olika,
+  och utan det hamnar tryckytan olika på olika färger. Nya foton måste köras
+  genom samma normalisering, annars glider trycket.
+- **Fotots tryckskala** sitter i `PHOTO_CM`: plaggets kropp mäter ~72 % av
+  bildbredden och motsvarar 58 cm, alltså 1,24 % per cm. `PHOTO_PRINT` styr
+  centrum och överkant per placering.
+- **Färger är per plagg.** `colorsFor()` och `colorById()` i `js/data.js` —
+  hoodien har `HOODIE_COLORS` (17 fotograferade), övriga de tolv i `COLORS`.
+  Färg-id:n skiljer sig mellan plaggen, så slå aldrig upp en färg utan att
+  veta vilket plagg det gäller.
 - **Konfiguratorn** har ett `configState`-objekt som nollställs vid produktbyte.
   Alla ändringar går genom `update()` inuti `renderProductPage()`; undantaget är
   motivval som ritar om hela sidan.

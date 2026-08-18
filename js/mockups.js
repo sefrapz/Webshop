@@ -314,12 +314,75 @@ function motifViewBox(motifId) {
 
 /* --------------------------- RENDER --------------------------- */
 
+/* --------------------- FOTOGRAFERADE PLAGG --------------------- */
+
+/* Tryckytorna uttryckta i procent av fotots bredd. Alla foton är
+   normaliserade till samma rutnät, så samma procentsatser gäller varje färg.
+   Uppmätt på rutnätet: plaggets kropp är ~72 % av bildbredden och motsvarar
+   bröstvidden 58 cm i storlek M — alltså 1,24 % av bildbredden per centimeter.
+   Trycket är kvadratiskt, så höjden sätts av `aspect-ratio` i CSS och inte
+   av procent av bildhöjden (bilden är högre än den är bred). */
+const PHOTO_CM = 1.24;
+
+const PHOTO_PRINT = {
+  hjarta: { cx: 64, top: 30 },
+  mage:   { cx: 50, top: 35 },
+  rygg:   { cx: 50, top: 33 },
+};
+
+function getPhotoPrintRect(placementId) {
+  const pl = PLACEMENT_BY_ID[placementId];
+  const geo = PHOTO_PRINT[placementId];
+  if (!pl || !geo) return null;
+  const w = pl.cm * PHOTO_CM;
+  return { left: geo.cx - w / 2, top: geo.top, w, side: pl.side };
+}
+
+/** Plagget som produktfoto, med motivet lagt i tryckytan. */
+function renderPhotoGarment(productId, side, color, opts = {}) {
+  const dir = photoDir(productId);
+  const file = `${dir}/${color.id}-${side === 'back' ? 'bak' : 'fram'}.webp`;
+  const name = `${PRODUCTS[productId].name} i ${color.name.toLowerCase()}, ` +
+    (side === 'back' ? 'baksida' : 'framsida');
+
+  let overlay = '';
+  if (opts.motifId && opts.placementId) {
+    const rect = getPhotoPrintRect(opts.placementId);
+    const motif = MOTIF_BY_ID[opts.motifId];
+    if (rect && motif && rect.side === side) {
+      overlay = `
+        <span class="print-area" style="left:${rect.left}%;top:${rect.top}%;width:${rect.w}%">
+          <svg viewBox="${motifViewBox(motif.id)}" aria-hidden="true">${motif.svg}</svg>
+        </span>`;
+    }
+  }
+
+  let areas = '';
+  if (opts.showPrintAreas) {
+    areas = PLACEMENTS.filter(p => PLACEMENT_BY_ID[p.id].side === side).map(p => {
+      const r = getPhotoPrintRect(p.id);
+      return `<span class="print-outline" style="left:${r.left}%;top:${r.top}%;width:${r.w}%"></span>`;
+    }).join('');
+  }
+
+  return `
+  <span class="garment-photo${opts.className ? ' ' + opts.className : ''}">
+    <img src="${file}" alt="${name}" loading="lazy" decoding="async">
+    ${areas}${overlay}
+  </span>`;
+}
+
 /**
  * Renderar ett plagg som SVG-sträng.
  * opts: { motifId, placementId, showPrintAreas, className }
  * Motivet ritas bara ut om placeringens sida matchar `side`.
  */
-function renderGarment(productId, side, colorHex, opts = {}) {
+function renderGarment(productId, side, color, opts = {}) {
+  /* `color` är antingen ett färgobjekt eller bara en hex-sträng (kategorikorten). */
+  const colorHex = typeof color === 'string' ? color : color.hex;
+  if (typeof color === 'object' && color && photoDir(productId)) {
+    return renderPhotoGarment(productId, side, color, opts);
+  }
   const uid = ++_uidCounter;
   let bodyPath, details;
 
@@ -376,6 +439,11 @@ function renderGarment(productId, side, colorHex, opts = {}) {
 }
 
 /** Miniatyr för färgval — plagg framifrån i liten storlek. */
-function renderThumb(productId, colorHex) {
-  return renderGarment(productId, 'front', colorHex);
+function renderThumb(productId, color) {
+  const dir = photoDir(productId);
+  if (dir && typeof color === 'object' && color) {
+    return `<span class="garment-photo"><img src="${dir}/${color.id}-thumb.webp"
+      alt="" loading="lazy" decoding="async"></span>`;
+  }
+  return renderGarment(productId, 'front', color);
 }

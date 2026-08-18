@@ -53,6 +53,9 @@ const PRODUCTS = {
     price: 449,
     /* Hoodien går bara upp till 3XL — de övriga plaggen finns i hela XS–5XL. */
     sizes: ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'],
+    /* Egna färger och riktiga foton — se HOODIE_COLORS nedan. */
+    get colors() { return HOODIE_COLORS; },
+    photos: 'assets/hoodie',
     tagline: 'Unisex passform · certifierad ekologisk bomull · 300 g/m²',
     desc: 'En tung tretrådig hoodie på 300 g/m² i certifierad ekologisk bomull och certifierad återvunnen polyester. Tyget är dubbelinfärgat och förkrympt — färgen sitter kvar och plagget behåller formen tvätt efter tvätt, även i 60 grader. Tidlöst snitt med mjuk huva, rymlig framficka och en halvmåne i nacken som förstärker sömmen.',
   },
@@ -68,6 +71,48 @@ const PRODUCTS = {
 /** Storlekar för ett plagg. Saknas `sizes` finns plagget i hela XS–5XL. */
 function sizesFor(productId) {
   return (PRODUCTS[productId] && PRODUCTS[productId].sizes) || SIZES;
+}
+
+/* ---------------------------------------------------------
+   Hoodien säljs på riktiga produktfoton, inte mockup. Filerna
+   ligger i assets/hoodie/ som `<färg>-fram.webp`, `<färg>-bak.webp`
+   och `<färg>-thumb.webp`. Hex används bara som reservfärg innan
+   bilden laddats — själva färgprovet är fotot.
+   --------------------------------------------------------- */
+
+const HOODIE_COLORS = [
+  { id: 'vit',        name: 'Vit',          hex: '#d8d8d8' },
+  { id: 'graddvit',   name: 'Gräddvit',     hex: '#ede8de' },
+  { id: 'benvit',     name: 'Benvit',       hex: '#c6c3bb' },
+  { id: 'ljusgul',    name: 'Ljusgul',      hex: '#eae5b0' },
+  { id: 'gramelerad', name: 'Gråmelerad',   hex: '#a6a6a6' },
+  { id: 'stalgra',    name: 'Stålgrå',      hex: '#6b6b6b' },
+  { id: 'morkgra',    name: 'Mörkgrå',      hex: '#5b5a5a' },
+  { id: 'antracit',   name: 'Antracit',     hex: '#474747' },
+  { id: 'dimbla',     name: 'Dimblå',       hex: '#899da5' },
+  { id: 'mellanbla',  name: 'Mellanblå',    hex: '#5177a2' },
+  { id: 'marin',      name: 'Marinblå',     hex: '#2d3e5e' },
+  { id: 'petrol',     name: 'Petrolblå',    hex: '#364353' },
+  { id: 'mint',       name: 'Mint',         hex: '#afc6b8' },
+  { id: 'grasalvia',  name: 'Gråsalvia',    hex: '#6c756c' },
+  { id: 'gron',       name: 'Grön',         hex: '#617f67' },
+  { id: 'oliv',       name: 'Oliv',         hex: '#787461' },
+  { id: 'rosa',       name: 'Rosa',         hex: '#d68189' },
+];
+
+/** Färger för ett plagg. Saknas egna används de tolv standardfärgerna. */
+function colorsFor(productId) {
+  return (PRODUCTS[productId] && PRODUCTS[productId].colors) || COLORS;
+}
+
+/** Slår upp en färg inom rätt plagg — färg-id:n skiljer sig mellan plaggen. */
+function colorById(productId, colorId) {
+  return colorsFor(productId).find(c => c.id === colorId) || null;
+}
+
+/** Mappen med produktfoton, om plagget har några. */
+function photoDir(productId) {
+  return (PRODUCTS[productId] && PRODUCTS[productId].photos) || null;
 }
 
 /* ---------------------------------------------------------

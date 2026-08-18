@@ -50,14 +50,17 @@ dialoger, fokus hålls kvar i dem och återgår dit det kom ifrån.
 | `index.html` | Skal: header, footer, varukorgs-drawer, motiv-modal |
 | `css/style.css` | Hela designsystemet, responsivt ned till mobil |
 | `js/data.js` | 4 produkter, 12 färger, storlekar, 3 placeringar, 25 motiv (inline-SVG) |
-| `js/mockups.js` | SVG-motor som ritar plaggen i valfri färg, fram/bak, med motiv |
+| `js/mockups.js` | SVG-motor för mockuperna + foto-rendering av hoodien |
 | `js/app.js` | Hash-router, konfigurator, varukorg (localStorage), kassa |
 
-Alla produktbilder är programmatiskt genererad SVG i stället för foton.
-Det gör att varje kombination (4 plagg × 2 sidor × 12 färger × 25 motiv ×
-3 placeringar = 7 200 varianter) renderas exakt, utan en enda bildfil.
-Tryckytan skalas mot plaggets verkliga bröstvidd, så 22 × 22 cm täcker en
-mindre del av en oversized hoodie än av en t-shirt.
+Hoodien visas med riktiga produktfoton — 17 färger, fram och bak — medan
+övriga plagg ritas som programmatiskt genererad SVG.
+Motivet läggs i båda fallen ovanpå plagget i en tryckyta som är skalad mot
+plaggets verkliga bröstvidd, så 22 × 22 cm blir 22 cm på riktigt.
+
+Fotona ligger i `assets/hoodie/` som WebP och är normaliserade till samma
+rutnät — källbilderna var beskurna olika, och utan normalisering hamnar
+trycket olika på olika färger.
 Vill man ersätta mockupsen med riktiga produktfoton byts bara
 `renderGarment()` ut mot `<img>`-element per färg/sida.
 

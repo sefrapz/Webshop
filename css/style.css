@@ -229,6 +229,7 @@ body.no-scroll { overflow: hidden; }
   padding: 30px clamp(20px, 5vw, 70px); position: relative;
 }
 .preview-stage svg.garment { width: 100%; height: auto; }
+.preview-stage .garment-photo { width: 100%; }
 .side-toggle {
   position: absolute; top: 18px; left: 18px;
   display: inline-flex; background: var(--surface); border: 1px solid var(--line);
@@ -256,6 +257,7 @@ body.no-scroll { overflow: hidden; }
   text-align: center;
 }
 .color-thumb svg.garment { width: 100%; height: auto; }
+.color-thumb .garment-photo img { width: 100%; }
 .color-thumb:hover { transform: translateY(-3px); }
 .color-thumb.selected { border-color: var(--ink); }
 .color-thumb .thumb-name {
@@ -456,6 +458,7 @@ body.no-scroll { overflow: hidden; }
   border-radius: 10px; padding: 6px;
 }
 .cart-item-img svg.garment { width: 100%; height: auto; }
+.cart-item-img .garment-photo img { width: 100%; }
 .cart-item-info { flex: 1; font-size: .85rem; }
 .cart-item-info h4 { font-size: .92rem; font-weight: 800; }
 .cart-item-info .ci-meta { color: var(--ink-soft); margin-top: 3px; line-height: 1.5; }
@@ -612,6 +615,22 @@ body.no-scroll { overflow: hidden; }
 .footer-bottom {
   border-top: 1px solid rgba(255,255,255,.1);
   padding: 20px 28px; text-align: center; font-size: .78rem;
+}
+
+/* ------------------- Fotograferade plagg ------------------- */
+
+/* Hoodien visas som riktiga produktfoton. Tryckytan läggs ovanpå
+   i procent av bildbredden och hålls kvadratisk med aspect-ratio,
+   så motivet behåller sina centimetermått oavsett bildstorlek. */
+.garment-photo { position: relative; display: block; width: 100%; }
+.garment-photo img { display: block; width: 100%; height: auto; }
+.garment-photo .print-area,
+.garment-photo .print-outline {
+  position: absolute; display: block; aspect-ratio: 1;
+}
+.garment-photo .print-area svg { display: block; width: 100%; height: 100%; }
+.garment-photo .print-outline {
+  border: 2px dashed rgba(0, 0, 0, .3); border-radius: 4px;
 }
 
 /* ------------------------- Informationssidor ------------------------- */

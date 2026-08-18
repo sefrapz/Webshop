@@ -37,13 +37,13 @@ function addToCart(item) {
 function itemPreviewSVG(item, side) {
   const pl = PLACEMENT_BY_ID[item.placement];
   const useSide = side || pl.side;
-  return renderGarment(item.product, useSide, COLOR_BY_ID[item.color].hex, {
+  return renderGarment(item.product, useSide, colorById(item.product, item.color), {
     motifId: item.motif, placementId: item.placement,
   });
 }
 
 function cartItemMeta(item) {
-  return `${COLOR_BY_ID[item.color].name} · Stl ${item.size}<br>` +
+  return `${colorById(item.product, item.color).name} · Stl ${item.size}<br>` +
     `Motiv: ${MOTIF_BY_ID[item.motif].name} · ${PLACEMENT_BY_ID[item.placement].name} (${PLACEMENT_BY_ID[item.placement].size})`;
 }
 
@@ -233,7 +233,8 @@ function renderHomePage() {
     { id: 'tshirt', color: '#28345c', note: 'från 249 kr' },
     { id: 'longsleeve', color: '#77755b', note: 'från 299 kr' },
     { id: 'sweatshirt', color: '#722336', note: 'från 379 kr' },
-    { id: 'hoodie', color: '#232327', note: 'från 449 kr' },
+    /* Hoodien har riktiga foton — färg-id i stället för hex ger fotot. */
+    { id: 'hoodie', color: colorById('hoodie', 'antracit'), note: 'från 449 kr' },
   ];
   app.innerHTML = `
     <section class="hero">
@@ -246,7 +247,9 @@ function renderHomePage() {
     <section class="category-section">
       <div class="section-head">
         <h2>Välj ditt plagg</h2>
-        <span>4 plagg · 12 färger · 25 motiv · 3 placeringar</span>
+        <span>${Object.keys(PRODUCTS).length} plagg · upp till ${
+          Math.max(...Object.keys(PRODUCTS).map(id => colorsFor(id).length))
+        } färger · ${MOTIFS.length} motiv · ${PLACEMENTS.length} placeringar</span>
       </div>
       <div class="category-grid">
         ${cats.map(c => `
@@ -312,7 +315,7 @@ function designHash(s) {
 function applyDesignParams(params) {
   const s = configState;
   const farg = params.get('farg');
-  if (farg && COLOR_BY_ID[farg]) s.color = farg;
+  if (farg && colorById(s.product, farg)) s.color = farg;
   const stl = params.get('stl');
   if (stl && sizesFor(s.product).includes(stl)) s.size = stl;
   const motiv = params.get('motiv');
@@ -334,7 +337,7 @@ function renderProductPage(productId, params) {
 
   if (configState.product !== productId) {
     configState.product = productId;
-    configState.color = COLORS[0].id;
+    configState.color = colorsFor(productId)[0].id;
     configState.side = 'front';
     configState.size = null;
     configState.qty = 1;
@@ -424,10 +427,10 @@ function renderProductPage(productId, params) {
 
   /* --- färgminiatyrer --- */
   const thumbs = document.getElementById('colorThumbs');
-  thumbs.innerHTML = COLORS.map(c => `
+  thumbs.innerHTML = colorsFor(productId).map(c => `
     <button class="color-thumb ${c.id === s.color ? 'selected' : ''}" data-color="${c.id}"
       title="${c.name}" aria-pressed="${c.id === s.color}" aria-label="Färg: ${c.name}">
-      ${renderThumb(productId, c.hex)}
+      ${renderThumb(productId, c)}
       <span class="thumb-name">${c.name}</span>
     </button>`).join('');
   thumbs.querySelectorAll('[data-color]').forEach(b => b.onclick = () => {
@@ -539,7 +542,7 @@ function renderProductPage(productId, params) {
   }
 
   function update() {
-    const color = COLOR_BY_ID[s.color];
+    const color = colorById(s.product, s.color);
 
     /* Designen speglas i adressfältet vid varje ändring. replaceState
        triggar ingen hashchange, så routern startar inte om sidan. */
@@ -551,7 +554,7 @@ function renderProductPage(productId, params) {
 
     /* förhandsvisning */
     document.getElementById('previewSvg').innerHTML = renderGarment(
-      s.product, s.side, color.hex,
+      s.product, s.side, color,
       { motifId: s.motif, placementId: s.placement, showPrintAreas: !s.placement && !!s.motif }
     );
     const sideFront = document.getElementById('sideFront');
