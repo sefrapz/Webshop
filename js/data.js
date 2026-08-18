@@ -35,7 +35,7 @@ const PLACEMENTS = [
 const PRODUCTS = {
   tshirt: {
     id: 'tshirt',
-    name: 'T-shirt',
+    name: 'T-shirt bas',
     price: 249,
     /* Fyra fotograferade färger — se TSHIRT_COLORS nedan. */
     get colors() { return TSHIRT_COLORS; },

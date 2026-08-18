@@ -19,11 +19,12 @@ python3 -m http.server 8000
 
 ## Flödet
 
-1. **Startsida** — fyra klickbara kategorier: T-shirt, Långärmad t-shirt,
+1. **Startsida** — fyra klickbara kategorier: T-shirt bas, Långärmad t-shirt,
    Sweatshirt och Hoodie.
 2. **Produktsida** — stor produktbild med fram-/baksida och färgminiatyrer
    (klick på miniatyr byter den stora bilden), storleksval samt antal.
-   Hoodien finns i 17 färger och XS–3XL, övriga plagg i 12 färger och XS–5XL.
+   Hoodien finns i 17 fotograferade färger och XS–3XL, t-shirten i 4 och
+   XS–5XL. Sweatshirt och långärmad ritas som mockup i 12 färger, XS–5XL.
 3. **Motiv** — knapp som öppnar ett galleri med 25 motiv.
 4. **Placering** — Hjärta 10 × 10 cm, Mage 22 × 22 cm eller Rygg 22 × 22 cm.
 5. **Live-förhandsvisning** — plagget renderas i vald färg med valt motiv på
