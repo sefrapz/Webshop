@@ -591,7 +591,7 @@ function renderProductPage(productId, params) {
       const m = MOTIF_BY_ID[s.motif];
       motifBtn.classList.add('has-motif');
       motifBtn.innerHTML = `
-        <span class="motif-preview"><svg viewBox="${motifViewBox(m.id)}" aria-hidden="true">${m.svg}</svg></span>
+        <span class="motif-preview"><svg viewBox="${motifViewBox(m.id)}" aria-hidden="true">${motifMarkup(m)}</svg></span>
         <span>${m.name}<small>Klicka för att byta motiv</small></span>
         <span class="cta-arrow">→</span>`;
     } else {
@@ -623,6 +623,7 @@ const motifGrid = document.getElementById('motifGrid');
 const motifSearch = document.getElementById('motifSearch');
 const motifEmpty = document.getElementById('motifEmpty');
 const motifCount = document.getElementById('motifCount');
+const motifSub = document.querySelector('#motifModal .modal-sub');
 
 /* Elementet som öppnade modalen — dit går fokus tillbaka när den stängs. */
 let motifOpener = null;
@@ -635,12 +636,15 @@ function renderMotifGrid(query = '') {
     const selected = configState.motif === m.id;
     return `
     <button class="motif-tile ${selected ? 'selected' : ''}" data-motif="${m.id}" aria-pressed="${selected}">
-      <svg viewBox="${motifViewBox(m.id)}" aria-hidden="true">${m.svg}</svg>
+      <svg viewBox="${motifViewBox(m.id)}" aria-hidden="true">${motifMarkup(m)}</svg>
       <span>${m.name}</span>
     </button>`;
   }).join('');
 
   motifEmpty.hidden = list.length > 0;
+  motifSub.textContent = MOTIFS.length === 1
+    ? 'Ett motiv — fler är på väg. Tryckt för hand med miljövänlig färg.'
+    : `${MOTIFS.length} motiv — tryckta för hand med miljövänlig färg.`;
   motifCount.textContent = q
     ? `${list.length} av ${MOTIFS.length}`
     : `${MOTIFS.length} motiv`;

@@ -300,6 +300,21 @@ function getPrintRect(productId, placementId) {
 }
 
 /**
+ * Motivets innehåll, ritat i sin viewBox. Riktiga motiv är bilder med
+ * alfakanal; `svg`-varianten finns kvar för handritade motiv.
+ */
+function motifMarkup(motif) {
+  if (!motif) return '';
+  if (motif.type === 'image') {
+    /* meet gör att motivet ryms i tryckytan utan att beskäras — ett brett
+       motiv fyller bredden och centreras i höjd, precis som ett tryck. */
+    return `<image href="${motif.src}" x="0" y="0" width="100" height="100"
+      preserveAspectRatio="xMidYMid meet"/>`;
+  }
+  return motif.svg || '';
+}
+
+/**
  * viewBox som gör att motivets största sida fyller hela tryckytan.
  * Utan detta ritas motivet i sin 100×100-ruta och blir mindre än
  * de centimetermått butiken lovar.
@@ -400,7 +415,7 @@ function renderPhotoGarment(productId, side, color, opts = {}) {
     if (rect && motif && rect.side === side) {
       overlay = `
         <span class="print-area" style="left:${rect.left}%;top:${rect.top}%;width:${rect.w}%">
-          <svg viewBox="${motifViewBox(motif.id)}" aria-hidden="true">${motif.svg}</svg>
+          <svg viewBox="${motifViewBox(motif.id)}" aria-hidden="true">${motifMarkup(motif)}</svg>
         </span>`;
     }
   }
@@ -448,15 +463,15 @@ function renderGarment(productId, side, color, opts = {}) {
     details = _tshirtDetails(side, uid);
   }
 
-  let motifMarkup = '';
+  let motifEl = '';
   if (opts.motifId && opts.placementId) {
     const rect = getPrintRect(productId, opts.placementId);
     const motif = MOTIF_BY_ID[opts.motifId];
     if (rect && motif && rect.side === side) {
-      motifMarkup = `
+      motifEl = `
         <svg x="${rect.x}" y="${rect.y}" width="${rect.w}" height="${rect.h}"
              viewBox="${motifViewBox(motif.id)}" overflow="visible">
-          ${motif.svg}
+          ${motifMarkup(motif)}
         </svg>`;
     }
   }
@@ -482,7 +497,7 @@ function renderGarment(productId, side, color, opts = {}) {
     <path d="${bodyPath}" fill="url(#vshade${uid})"/>
     ${details}
     ${printAreas}
-    ${motifMarkup}
+    ${motifEl}
   </svg>`;
 }
 

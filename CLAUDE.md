@@ -16,13 +16,15 @@ npx http-server -p 8000 -c-1 .   # eller: python3 -m http.server 8000
 | --- | --- |
 | `index.html` | Skal: header, footer, varukorgs-drawer, motiv-modal, toast |
 | `css/style.css` | Designsystem i CSS-variabler, sektioner i samma ordning som vyerna |
-| `js/data.js` | 4 produkter, färger, storlekar, 3 placeringar, 25 motiv, storleksguide |
+| `js/data.js` | 4 produkter, färger, storlekar, 3 placeringar, motiv, storleksguide |
 | `js/mockups.js` | SVG-motor + foto-rendering av hoodien |
 | `assets/hoodie/` | 17 färger × fram/bak/miniatyr som WebP |
 | `assets/tshirt/` | 4 färger × fram/bak/miniatyr som WebP |
 | `assets/sweatshirt/` | 4 färger × fram/bak/miniatyr som WebP |
 | `assets/longsleeve/` | 4 färgställningar × fram/bak/miniatyr som WebP |
+| `assets/motiv/` | Frilagda motiv som WebP med alfakanal |
 | `tools/photos.mjs` | Normaliserar nya produktfoton till rutnätet |
+| `tools/motif.mjs` | Frilägger ett motiv från vit botten |
 | `js/app.js` | Hash-router, konfigurator, varukorg (localStorage), kassa |
 
 ## Så hänger det ihop
@@ -43,10 +45,13 @@ npx http-server -p 8000 -c-1 .   # eller: python3 -m http.server 8000
   plaggets torso är ~296 enheter brett och jämför med bröstvidden i storlek M
   ur `SIZE_CHART`. Därför täcker 22 × 22 cm en mindre del av en oversized
   hoodie än av en t-shirt. `PRINT_TOP` styr höjdläget per plagg.
-- **Motivet fyller tryckytan** tack vare `motifViewBox()`, som använder den
-  uppmätta ytan i `MOTIF_BOX` och skalar motivets största sida till hela
-  rutan. Utan det ritas t.ex. kaktusen (38 av 100 enheter bred) i en tredjedel
-  av utlovade 22 cm. Nytt motiv ⇒ mät det och lägg in i `MOTIF_BOX`.
+- **Motiven är riktiga tryckfiler**, inte platshållare. Ett bildmotiv har
+  `type: 'image'` och en WebP med alfakanal i `assets/motiv/`, ritad med
+  `preserveAspectRatio="xMidYMid meet"` så den ryms i tryckytan utan att
+  beskäras — ett brett motiv fyller bredden och centreras i höjd.
+- **Handritade motiv** (`svg` i viewBox 0 0 100 100) stöds fortfarande, men
+  måste mätas in i `MOTIF_BOX`, annars ritas ett smalt motiv mindre än de
+  centimetermått butiken lovar. `motifViewBox()` sköter uppskalningen.
 - **Alla fyra plagg visas som riktiga foton.** SVG-mockuparna finns kvar som
   reserv och används om ett plagg saknar `photos` — praktiskt när ett nytt
   plagg läggs till innan fotona finns.
@@ -97,8 +102,10 @@ till en ny dialog:
 
 - All UI-text är på svenska. Kommentarer i koden likaså.
 - Priser är heltal kronor, formaterade som `${n} kr`.
-- Nya motiv läggs i `MOTIFS` i `js/data.js` med `viewBox 0 0 100 100` — och i
-  `MOTIF_BOX` med sin uppmätta yta.
+- Nytt motiv: kör `node tools/motif.mjs <källbild> assets/motiv/<id>.webp`
+  och lägg in `{ id, name, type: 'image', src }` i `MOTIFS`. Källbilden ska
+  vara motivet i sin färg på vit botten — verktyget räknar ut täckningsgraden
+  per pixel, så penseldrag och mjuka kanter överlever.
 - Nya färger läggs i `COLORS`; mockupmotorn tar hex rakt av, inget mer behövs.
 - Storlekar är per plagg: `sizesFor()` i `js/data.js` returnerar plaggets
   `sizes` om det har några, annars hela `SIZES`. Hoodien går bara till 3XL.

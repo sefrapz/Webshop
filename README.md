@@ -25,7 +25,8 @@ python3 -m http.server 8000
    (klick på miniatyr byter den stora bilden), storleksval samt antal.
    T-shirt bas finns i XS–5XL, övriga plagg i XS–3XL. Hoodien har 17
    fotograferade färger, de andra tre fyra var.
-3. **Motiv** — knapp som öppnar ett galleri med 25 motiv.
+3. **Motiv** — knapp som öppnar motivgalleriet. Motiven är riktiga
+   tryckfiler med alfakanal, inte ritade platshållare.
 4. **Placering** — Hjärta 10 × 10 cm, Mage 22 × 22 cm eller Rygg 22 × 22 cm.
 5. **Live-förhandsvisning** — plagget renderas i vald färg med valt motiv på
    vald plats (väljer man rygg vänds plagget automatiskt till baksidan).
@@ -51,7 +52,7 @@ dialoger, fokus hålls kvar i dem och återgår dit det kom ifrån.
 | --- | --- |
 | `index.html` | Skal: header, footer, varukorgs-drawer, motiv-modal |
 | `css/style.css` | Hela designsystemet, responsivt ned till mobil |
-| `js/data.js` | 4 produkter, färger och storlekar per plagg, 3 placeringar, 25 motiv |
+| `js/data.js` | 4 produkter, färger och storlekar per plagg, 3 placeringar, motiv |
 | `js/mockups.js` | SVG-motor för mockuperna + foto-rendering av hoodien |
 | `js/app.js` | Hash-router, konfigurator, varukorg (localStorage), kassa |
 
