@@ -56,8 +56,8 @@ const PRODUCTS = {
     /* Egna färger och riktiga foton — se HOODIE_COLORS nedan. */
     get colors() { return HOODIE_COLORS; },
     photos: 'assets/hoodie',
-    tagline: 'Unisex passform · certifierad ekologisk bomull · 300 g/m²',
-    desc: 'En tung tretrådig hoodie på 300 g/m² i certifierad ekologisk bomull och certifierad återvunnen polyester. Tyget är dubbelinfärgat och förkrympt — färgen sitter kvar och plagget behåller formen tvätt efter tvätt, även i 60 grader. Tidlöst snitt med mjuk huva, rymlig framficka och en halvmåne i nacken som förstärker sömmen.',
+    tagline: 'Unisex XS–3XL · 300 gsm tretrådigt tyg',
+    desc: 'Modern hood i certifierad ekologisk bomull och certifierad återvunnen polyester i ett tungt 300 gsm tretrådigt tyg. Den är tvättbar i 60 grader, dubbelinfärgad och förkrympt för att behålla sin form. Den tidlösa designen har en mysig huva, en praktisk framficka och en halvmåne i nacken.',
   },
   longsleeve: {
     id: 'longsleeve',
