@@ -316,6 +316,9 @@ body.no-scroll { overflow: hidden; }
   white-space: nowrap;
 }
 
+/* Priset är plagg + tryck — noten visar hur summan är byggd. */
+.price-note { margin-top: 6px; font-size: .82rem; color: var(--ink-soft); }
+
 .product-desc { color: var(--ink-soft); font-size: .93rem; margin-top: 16px; }
 
 /* Plaggets fakta som chips i stället för en grå mening. */
@@ -405,6 +408,11 @@ body.no-scroll { overflow: hidden; }
 .placement-card .pl-icon { display: flex; justify-content: center; margin-bottom: 8px; }
 .placement-card h4 { font-size: .88rem; font-weight: 800; }
 .placement-card small { display: block; font-size: .74rem; color: var(--ink-soft); margin-top: 2px; }
+/* Trycket prissätts efter yta — kortet visar vad valet kostar. */
+.placement-card .pl-price {
+  display: block; margin-top: 6px; font-size: .78rem; font-weight: 700;
+}
+.placement-card.selected .pl-price { color: #fff; }
 
 .addtocart-btn {
   width: 100%; margin-top: 26px;

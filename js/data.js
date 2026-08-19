@@ -22,13 +22,17 @@ const COLORS = [
 /* `cm` är tryckytans sida i centimeter och styr hur stort motivet ritas.
    Mockupen skalar den mot plaggets verkliga bröstvidd — se UNITS_PER_CM
    i mockups.js — så samma tryck täcker en mindre del av en oversized
-   hoodie än av en t-shirt, precis som i verkligheten. */
+   hoodie än av en t-shirt, precis som i verkligheten.
+
+   `price` är vad trycket kostar utöver plagget. Leverantören prissätter
+   de två tryckytorna var för sig, så priset på sidan byggs som
+   plagg + tryck — se priceFor() längre ner. */
 const PLACEMENTS = [
-  { id: 'hjarta', name: 'Hjärta', size: '10 × 10 cm', cm: 10, side: 'front',
+  { id: 'hjarta', name: 'Hjärta', size: '10 × 10 cm', cm: 10, price: 75, side: 'front',
     desc: 'Diskret tryck på vänster bröst.' },
-  { id: 'mage',   name: 'Mage',   size: '22 × 22 cm', cm: 22, side: 'front',
+  { id: 'mage',   name: 'Mage',   size: '20 × 20 cm', cm: 20, price: 150, side: 'front',
     desc: 'Stort tryck mitt på framsidan.' },
-  { id: 'rygg',   name: 'Rygg',   size: '22 × 22 cm', cm: 22, side: 'back',
+  { id: 'rygg',   name: 'Rygg',   size: '20 × 20 cm', cm: 20, price: 150, side: 'back',
     desc: 'Stort tryck mitt på ryggen.' },
 ];
 
@@ -36,7 +40,7 @@ const PRODUCTS = {
   tshirt: {
     id: 'tshirt',
     name: 'T-shirt bas',
-    price: 249,
+    price: 180,
     /* Fyra fotograferade färger — se TSHIRT_COLORS nedan. */
     get colors() { return TSHIRT_COLORS; },
     photos: 'assets/tshirt',
@@ -46,7 +50,7 @@ const PRODUCTS = {
   sweatshirt: {
     id: 'sweatshirt',
     name: 'Sweatshirt',
-    price: 379,
+    price: 280,
     sizes: ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'],
     /* Fyra fotograferade färger — se SWEATSHIRT_COLORS nedan. */
     get colors() { return SWEATSHIRT_COLORS; },
@@ -57,7 +61,7 @@ const PRODUCTS = {
   hoodie: {
     id: 'hoodie',
     name: 'Hoodie',
-    price: 449,
+    price: 460,
     /* Hoodien går bara upp till 3XL — de övriga plaggen finns i hela XS–5XL. */
     sizes: ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'],
     /* Egna färger och riktiga foton — se HOODIE_COLORS nedan. */
@@ -69,7 +73,7 @@ const PRODUCTS = {
   longsleeve: {
     id: 'longsleeve',
     name: 'Longsleeve t-shirt',
-    price: 299,
+    price: 195,
     sizes: ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'],
     /* Fyra färgställningar — vit kropp, färgad ärm. Se LONGSLEEVE_COLORS. */
     get colors() { return LONGSLEEVE_COLORS; },
@@ -211,3 +215,26 @@ const MOTIF_BOX = {};
 const MOTIF_BY_ID = Object.fromEntries(MOTIFS.map(m => [m.id, m]));
 const COLOR_BY_ID = Object.fromEntries(COLORS.map(c => [c.id, c]));
 const PLACEMENT_BY_ID = Object.fromEntries(PLACEMENTS.map(p => [p.id, p]));
+
+/* ---------------------------------------------------------
+   Pris = plagg + tryck. Grundpriset i PRODUCTS är plagget utan
+   tryck; tryckytan kostar olika mycket beroende på storlek och
+   ligger som `price` på placeringen. Utan vald placering visar
+   sidan lägsta möjliga pris ("från").
+   --------------------------------------------------------- */
+
+/** Vad trycket kostar för en placering. */
+function printPrice(placementId) {
+  const pl = PLACEMENT_BY_ID[placementId];
+  return pl ? pl.price : 0;
+}
+
+/** Färdigt pris för ett plagg med tryck på en viss placering. */
+function priceFor(productId, placementId) {
+  return PRODUCTS[productId].price + printPrice(placementId);
+}
+
+/** Lägsta pris plagget kan hamna på — plagg + billigaste trycket. */
+function priceFrom(productId) {
+  return PRODUCTS[productId].price + Math.min(...PLACEMENTS.map(p => p.price));
+}

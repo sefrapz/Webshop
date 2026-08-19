@@ -15,7 +15,10 @@ function saveCart() {
 }
 
 function cartCount() { return cart.reduce((s, i) => s + i.qty, 0); }
-function cartTotal() { return cart.reduce((s, i) => s + i.qty * PRODUCTS[i.product].price, 0); }
+/* Raden prissätts av plagget plus trycket — varukorgen sparar valen,
+   inte priset, så en prisändring slår igenom på det som redan ligger i. */
+function itemPrice(item) { return priceFor(item.product, item.placement); }
+function cartTotal() { return cart.reduce((s, i) => s + i.qty * itemPrice(i), 0); }
 
 function updateCartBadge() {
   const badge = document.getElementById('cartCount');
@@ -67,7 +70,7 @@ function renderCartDrawer() {
             <span>${item.qty}</span>
             <button data-cart-inc="${idx}" aria-label="Öka antal">+</button>
           </span>
-          <span class="ci-price">${item.qty * PRODUCTS[item.product].price} kr</span>
+          <span class="ci-price">${item.qty * itemPrice(item)} kr</span>
         </div>
         <button class="ci-remove" data-cart-remove="${idx}">Ta bort</button>
       </div>
@@ -239,13 +242,13 @@ function renderHomePage() {
   ].map(c => ({
     ...c,
     color: colorById(c.id, c.color) || colorsFor(c.id)[0],
-    note: `från ${PRODUCTS[c.id].price} kr`,
+    note: `från ${priceFrom(c.id)} kr`,
   }));
   app.innerHTML = `
     <section class="hero">
       <div class="hero-kicker">Tryckt för hand · Levereras inom 3–5 dagar</div>
       <h1>Ditt motiv.<br><em>Dina</em> kläder.</h1>
-      <p class="lead">Välj plagg, färg och storlek. Välj bland 25 unika motiv och bestäm exakt var trycket ska sitta — och se resultatet live innan du beställer.</p>
+      <p class="lead">Välj plagg, färg och storlek. Välj motiv och bestäm exakt var trycket ska sitta — och se resultatet live innan du beställer.</p>
       <a class="hero-cta" href="#/produkt/tshirt">Börja designa <span>→</span></a>
     </section>
 
@@ -386,12 +389,12 @@ function renderProductPage(productId, params) {
               </button>
             </div>
             <div class="price-row">
-              <span class="product-price">${product.price} kr</span>
+              <span class="product-price" id="productPrice"></span>
               <span class="price-badges">
-                <span class="badge">Tryck ingår</span>
                 <span class="badge">Fri frakt</span>
               </span>
             </div>
+            <p class="price-note" id="priceNote"></p>
             <p class="product-desc">${product.desc}</p>
             <ul class="product-specs">
               ${product.tagline.split('·').map(t => `<li>${t.trim()}</li>`).join('')}
@@ -504,10 +507,12 @@ function renderProductPage(productId, params) {
   };
   plGrid.innerHTML = PLACEMENTS.map(p => `
     <button class="placement-card ${s.placement === p.id ? 'selected' : ''}" data-placement="${p.id}"
-      aria-pressed="${s.placement === p.id}" aria-label="Placering: ${p.name}, ${p.size}. ${p.desc}">
+      aria-pressed="${s.placement === p.id}"
+      aria-label="Placering: ${p.name}, ${p.size}, tryck ${p.price} kronor. ${p.desc}">
       <div class="pl-icon" aria-hidden="true">${plIcon(p.id)}</div>
       <h4>${p.name}</h4>
       <small>${p.size}</small>
+      <span class="pl-price">+ ${p.price} kr</span>
     </button>`).join('');
   plGrid.querySelectorAll('[data-placement]').forEach(b => b.onclick = () => {
     s.placement = b.dataset.placement;
@@ -607,18 +612,30 @@ function renderProductPage(productId, params) {
       motifBtn.classList.remove('has-motif');
       motifBtn.innerHTML = `
         <span class="motif-preview" style="display:flex;align-items:center;justify-content:center;font-size:1.4rem;">✦</span>
-        <span>Välj motiv<small>25 motiv att välja mellan</small></span>
+        <span>Välj motiv<small>${MOTIFS.length === 1 ? '1 motiv just nu' : `${MOTIFS.length} motiv att välja mellan`}</small></span>
         <span class="cta-arrow">→</span>`;
     }
+
+    /* pris — plagg + tryck, så det ändras när placeringen byts */
+    const unit = priceFor(productId, s.placement);
+    const pl = s.placement ? PLACEMENT_BY_ID[s.placement] : null;
+    document.getElementById('productPrice').textContent =
+      s.placement ? `${unit} kr` : `Från ${priceFrom(productId)} kr`;
+    document.getElementById('priceNote').textContent = pl
+      ? `Plagget ${product.price} kr + tryck ${pl.size} ${pl.price} kr`
+      : `Plagget ${product.price} kr + tryck från ${Math.min(...PLACEMENTS.map(p => p.price))} kr`;
 
     /* knapp */
     const addBtn = document.getElementById('addBtn');
     const hint = document.getElementById('addHint');
     addBtn.disabled = !isConfigComplete();
-    addBtn.innerHTML = `Lägg i varukorgen · ${s.qty * product.price} kr`;
+    /* Utan vald placering är trycket inte prissatt än — visa "från". */
+    addBtn.innerHTML = s.placement
+      ? `Lägg i varukorgen · ${s.qty * unit} kr`
+      : `Lägg i varukorgen · från ${s.qty * priceFrom(productId)} kr`;
     if (!s.size) hint.textContent = 'Välj storlek för att gå vidare.';
-    else if (!s.motif) hint.textContent = 'Välj ett motiv — steg 3.';
-    else if (!s.placement) hint.textContent = 'Välj placering av trycket — steg 4.';
+    else if (!s.motif) hint.textContent = 'Välj ett motiv — steg 2.';
+    else if (!s.placement) hint.textContent = 'Välj placering av trycket — steg 3.';
     else hint.textContent = 'Allt klart! Förhandsvisningen ovan visar exakt hur plagget blir.';
   }
 
@@ -791,7 +808,7 @@ function renderCheckoutPage() {
                 <strong>${item.qty} × ${PRODUCTS[item.product].name}</strong>
                 <span class="ci-meta">${cartItemMeta(item)}</span>
               </div>
-              <span class="si-price">${item.qty * PRODUCTS[item.product].price} kr</span>
+              <span class="si-price">${item.qty * itemPrice(item)} kr</span>
             </div>`).join('')}
           <div class="summary-rows">
             <div><span>Delsumma</span><span>${total} kr</span></div>
@@ -871,7 +888,7 @@ function renderConfirmationPage() {
               <strong>${item.qty} × ${PRODUCTS[item.product].name}</strong>
               <span class="ci-meta">${cartItemMeta(item)}</span>
             </div>
-            <span class="si-price">${item.qty * PRODUCTS[item.product].price} kr</span>
+            <span class="si-price">${item.qty * itemPrice(item)} kr</span>
           </div>`).join('')}
         <div class="summary-rows">
           <div class="total"><span>Betalt med Klarna</span><span>${order.total} kr</span></div>

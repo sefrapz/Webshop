@@ -16,7 +16,7 @@ npx http-server -p 8000 -c-1 .   # eller: python3 -m http.server 8000
 | --- | --- |
 | `index.html` | Skal: header, footer, varukorgs-drawer, motiv-modal, toast |
 | `css/style.css` | Designsystem i CSS-variabler, sektioner i samma ordning som vyerna |
-| `js/data.js` | 4 produkter, färger, storlekar, 3 placeringar, motiv, storleksguide |
+| `js/data.js` | 4 produkter, färger, storlekar, 3 placeringar med tryckpris, motiv, storleksguide |
 | `js/mockups.js` | SVG-motor + foto-rendering av hoodien |
 | `assets/hoodie/` | 17 färger × fram/bak/miniatyr som WebP |
 | `assets/tshirt/` | 4 färger × fram/bak/miniatyr som WebP |
@@ -88,6 +88,13 @@ npx http-server -p 8000 -c-1 .   # eller: python3 -m http.server 8000
   `applyDesignParams()` läser tillbaka den. Okända värden ignoreras tyst, så en
   trasig länk aldrig kraschar sidan. Lägger du till ett val i konfiguratorn:
   ta med det i både `designHash()` och `applyDesignParams()`.
+- **Priset byggs som plagg + tryck.** `PRODUCTS[x].price` är plagget utan
+  tryck och `PLACEMENTS[i].price` är vad tryckytan kostar — 10 × 10 cm och
+  20 × 20 cm prissätts var för sig av leverantören. Räkna aldrig med
+  `product.price` rakt av i UI:t: gå via `priceFor(produkt, placering)`, eller
+  `priceFrom(produkt)` när placeringen inte är vald än (visas som "Från X kr").
+  Varukorgen sparar valen och inte priset, så `itemPrice()` räknar om raden —
+  en prisändring slår därför igenom även på det som redan ligger i korgen.
 - **Varukorgen** ligger i `localStorage` under `motiv-cart`. Rader slås ihop på
   nyckeln `produkt|färg|storlek|motiv|placering`.
 
@@ -107,7 +114,8 @@ till en ny dialog:
 ## Konventioner
 
 - All UI-text är på svenska. Kommentarer i koden likaså.
-- Priser är heltal kronor, formaterade som `${n} kr`.
+- Priser är heltal kronor, formaterade som `${n} kr`. Grundpriserna kommer
+  från leverantören och är preliminära — de innehåller ingen marginal.
 - Nytt motiv: kör `node tools/motif.mjs <källbild> assets/motiv/<id>.webp`
   och lägg in `{ id, name, type: 'image', src }` i `MOTIFS`. Källbilden ska
   vara motivet i sin färg på vit botten — verktyget räknar ut täckningsgraden

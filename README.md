@@ -29,7 +29,8 @@ python3 -m http.server 8000
    fotograferade färger, de andra tre fyra var.
 3. **Motiv** — knapp som öppnar motivgalleriet. Motiven är riktiga
    tryckfiler med alfakanal, inte ritade platshållare.
-4. **Placering** — Hjärta 10 × 10 cm, Mage 22 × 22 cm eller Rygg 22 × 22 cm.
+4. **Placering** — Hjärta 10 × 10 cm, Mage 20 × 20 cm eller Rygg 20 × 20 cm.
+   Tryckytan är prissatt för sig, så priset uppdateras när placeringen byts.
 5. **Live-förhandsvisning** — plagget renderas i vald färg med valt motiv på
    vald plats (väljer man rygg vänds plagget automatiskt till baksidan).
 6. **Varukorg → Kassa** — kunduppgifter och betalning i Klarna-stil
@@ -54,7 +55,7 @@ dialoger, fokus hålls kvar i dem och återgår dit det kom ifrån.
 | --- | --- |
 | `index.html` | Skal: header, footer, varukorgs-drawer, motiv-modal |
 | `css/style.css` | Hela designsystemet, responsivt ned till mobil |
-| `js/data.js` | 4 produkter, färger och storlekar per plagg, 3 placeringar, motiv |
+| `js/data.js` | 4 produkter, färger och storlekar per plagg, 3 placeringar med tryckpris, motiv |
 | `js/mockups.js` | SVG-motor för mockuperna + foto-rendering av hoodien |
 | `js/app.js` | Hash-router, konfigurator, varukorg (localStorage), kassa |
 
@@ -69,6 +70,17 @@ hamnar trycket olika på olika färger.
 Vill man byta ut fler plagg mot foton: lägg bilderna i `assets/<plagg>/`,
 peka `photos` dit i `PRODUCTS` och ge plagget egna `colors`. `renderGarment()`
 väljer sedan fotovägen automatiskt.
+
+## Priser
+
+Priset är plagget plus trycket: `PRODUCTS[x].price` är plagget utan tryck och
+`PLACEMENTS[i].price` är tryckytan. Produktsidan visar *Från X kr* tills en
+placering valts och skriver ut summan som *Plagget 460 kr + tryck 20 × 20 cm
+150 kr*. Räkna alltid via `priceFor()` / `priceFrom()` — varukorgen sparar
+valen, inte priset.
+
+Grundpriserna är leverantörens preliminära priser och innehåller ingen
+marginal. Höj dem i `PRODUCTS` när kalkylen är klar; inget annat behöver ändras.
 
 ## Klarna på riktigt
 
