@@ -29,6 +29,8 @@ input double RiskPct       = 0.5;    // Risk per insteg (% av kapital)
 input int    AtrLen        = 14;     // ATR för stop
 input double StopAtrMult   = 1.5;    // Initial stop (x ATR)
 input double MaxDailyDD    = 3.0;    // Max dagsförlust (%)
+input double MaxTotalDD    = 8.0;    // Max total förlust (%) - håll under firmans gräns
+input double StartBalance  = 0.0;    // Startbalans för total förlust (0 = läs av automatiskt)
 
 //--- Pyramidering
 input group "Pyramidering"
@@ -72,6 +74,10 @@ double   dayStartEquity = 0.0;
 int      tradesToday   = 0;
 bool     dayBlocked    = false;
 
+double   baselineBalance = 0.0;   // startbalans som total förlust mäts mot
+bool     accountBlocked  = false; // total förlustgräns nådd - handlar inte mer
+string   gvBaseline      = "";    // överlever omstart av terminalen
+
 // Positionsstate — speglar var-variablerna i Pine-versionen.
 double   baseLots      = 0.0;   // storleken på första insteget
 double   lastAddPx     = 0.0;   // priset där senaste insteget skedde
@@ -108,6 +114,8 @@ int OnInit()
    dayStartEquity = AccountInfoDouble(ACCOUNT_EQUITY);
    dayStamp       = DayStamp(TimeCurrent());
 
+   ResolveBaseline();
+
    RebuildStateFromPositions();
 
    // Servertiden är mäklarens, inte din. Skriv ut den så att sessionen
@@ -116,6 +124,9 @@ int OnInit()
                TimeToString(TimeCurrent(), TIME_DATE|TIME_MINUTES),
                SessStartHour, SessStartMin, SessEndHour, SessEndMin,
                IsHedging() ? "hedging" : "netting");
+   PrintFormat("Startbalans %.2f. Dagsstopp %.1f%%, totalstopp %.1f%% (= %.2f).",
+               baselineBalance, MaxDailyDD, MaxTotalDD,
+               baselineBalance * (1.0 - MaxTotalDD / 100.0));
 
    return(INIT_SUCCEEDED);
   }
@@ -133,6 +144,29 @@ void OnDeinit(const int reason)
 bool IsHedging()
   {
    return((ENUM_ACCOUNT_MARGIN_MODE)AccountInfoInteger(ACCOUNT_MARGIN_MODE) == ACCOUNT_MARGIN_MODE_RETAIL_HEDGING);
+  }
+
+// Startbalansen måste överleva omstart, annars nollställs totalstoppet varje
+// gång terminalen startas om och gränsen blir meningslös.
+void ResolveBaseline()
+  {
+   gvBaseline = "TrendPyr_base_" + _Symbol + "_" + IntegerToString((long)MagicNumber);
+
+   if(StartBalance > 0.0)
+     {
+      baselineBalance = StartBalance;
+      GlobalVariableSet(gvBaseline, baselineBalance);
+      return;
+     }
+
+   if(GlobalVariableCheck(gvBaseline))
+     {
+      baselineBalance = GlobalVariableGet(gvBaseline);
+      if(baselineBalance > 0.0) return;
+     }
+
+   baselineBalance = AccountInfoDouble(ACCOUNT_BALANCE);
+   GlobalVariableSet(gvBaseline, baselineBalance);
   }
 
 datetime DayStamp(datetime t)
@@ -341,6 +375,16 @@ void UpdateDayCounters()
       dayBlocked     = false;
      }
 
+   if(baselineBalance > 0.0)
+     {
+      double totalPct = (AccountInfoDouble(ACCOUNT_EQUITY) - baselineBalance) / baselineBalance * 100.0;
+      if(totalPct <= -MaxTotalDD && !accountBlocked)
+        {
+         accountBlocked = true;
+         PrintFormat("Totalstopp: %.2f%% under startbalans. EA:n tar inga fler affärer.", totalPct);
+        }
+     }
+
    if(dayStartEquity > 0.0)
      {
       double pnlPct = (AccountInfoDouble(ACCOUNT_EQUITY) - dayStartEquity) / dayStartEquity * 100.0;
@@ -404,6 +448,12 @@ void Process()
       return;
      }
 
+   if(!flat && accountBlocked)
+     {
+      CloseAll("totalstopp");
+      return;
+     }
+
    if(!flat && dayBlocked)
      {
       CloseAll("dagsstopp");
@@ -430,7 +480,7 @@ void Process()
      }
 
    //--- Insteg
-   if(!inSess || !atrOk || dayBlocked || tradesToday >= MaxTradesDay) return;
+   if(!inSess || !atrOk || dayBlocked || accountBlocked || tradesToday >= MaxTradesDay) return;
 
    bool longSetup  = AllowLong  && flipUp   && closePx > ema && (!UseSlope || emaRising);
    bool shortSetup = AllowShort && flipDown && closePx < ema && (!UseSlope || emaFalling);
@@ -486,7 +536,7 @@ void OpenFirst(bool isLong, double atr)
 
 void TryAdd(int posDir, double atr, double closePx, bool dirUp, bool inSess)
   {
-   if(!inSess || dayBlocked) return;
+   if(!inSess || dayBlocked || accountBlocked) return;
    if(addsDone >= MaxAdds) return;
    if(atrAtEntry <= 0.0 || lastAddPx <= 0.0 || baseLots <= 0.0) return;
 
