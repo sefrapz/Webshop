@@ -1,0 +1,33 @@
+; TrendPyramid — förinställning för FTMO Free Trial / Challenge
+; Ladda i EA-dialogen: fliken Inputs -> Load -> välj den här filen.
+; Sessionstiderna utgår från FTMO:s servertid (EET). Kontrollera mot
+; raden "Servertid nu: ..." i Experts-loggen första gången EA:n startar.
+TrendLen=200
+UseSlope=true
+SlopeLen=10
+StFactor=3.0
+StAtrLen=10
+RiskPct=0.5
+AtrLen=14
+StopAtrMult=1.5
+MaxDailyDD=3.0
+MaxTotalDD=8.0
+StartBalance=0.0
+MaxAdds=3
+AddStepAtr=1.0
+AddSizePct=60.0
+TrailAfterAdd=true
+UseSession=true
+SessStartHour=16
+SessStartMin=30
+SessEndHour=23
+SessEndMin=0
+FlatAtClose=true
+MinAtrPct=0.05
+MaxTradesDay=6
+AllowLong=true
+AllowShort=true
+MagicNumber=725101
+MaxDeviation=20
+LookbackBars=1000
+TradeComment=TrendPyr
