@@ -31,8 +31,8 @@ npx http-server -p 8000 -c-1 .   # eller: python3 -m http.server 8000
 
 - **Inga moduler.** Allt är globala `const`/`function`. Ordningen i
   `index.html` spelar roll: `data.js` → `mockups.js` → `app.js`.
-- **Routern** är hash-baserad med sju vyer: `#/`, `#/produkt/:id`, `#/kassa`,
-  `#/tack`, `#/storleksguide`, `#/leverans`, `#/kontakt`. Varje vy skriver hela
+- **Routern** är hash-baserad med åtta vyer: `#/`, `#/produkt/:id`, `#/motiv`,
+  `#/kassa`, `#/tack`, `#/storleksguide`, `#/leverans`, `#/kontakt`. Varje vy skriver hela
   `#app` via `innerHTML` och kopplar sedan events med `.onclick` direkt på
   elementen. `route()` stänger mobilmenyn och motivmodalen vid varje byte.
 - **Mockuparna** returnerar SVG som sträng. Kroppen ritas tre gånger (färg,
@@ -121,6 +121,19 @@ till en ny dialog:
   vara motivet i sin färg på vit botten — verktyget räknar ut täckningsgraden
   per pixel, så penseldrag och mjuka kanter överlever.
 - Nya färger läggs i `COLORS`; mockupmotorn tar hex rakt av, inget mer behövs.
+- **Accentfärgerna kommer ur ATTYD-loggan.** `--orange: #ff5008` är loggans
+  exakta orange och `--orange-deep` är den variant som bär vit text — ren
+  orange har för svag kontrast för det. `--navy` bär mörka ytor: footern,
+  stegremsan, motivbannern och valda knappar. Bakgrunden är fortsatt beige.
+  Använd aldrig `--orange` som textfärg mot beige; kontrasten räcker inte.
+- **Tryckets centimetermått står inte i UI:t.** `cm` i `PLACEMENTS` finns bara
+  för att rita trycket i rätt skala; kunden ser `label` — "litet tryck" eller
+  "stort tryck".
+- **Frakten är inte satt.** `SHIPPING.price` är `null`, vilket kassan visar som
+  "Tillkommer". Sätt ett tal där så räknas det in i totalen av `orderTotal()`.
+  Det finns ingen ångerrätt — plaggen tillverkas efter kundens val — men
+  reklamationsrätten gäller. Skriv aldrig "fri frakt" eller "14 dagars
+  ångerrätt" någonstans.
 - Storlekar är per plagg: `sizesFor()` i `js/data.js` returnerar plaggets
   `sizes` om det har några, annars hela `SIZES`. Hoodien går bara till 3XL.
   Både storleksrutnätet, storleksguiden och `applyDesignParams()` går via den.

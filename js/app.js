@@ -47,7 +47,7 @@ function itemPreviewSVG(item, side) {
 
 function cartItemMeta(item) {
   return `${colorById(item.product, item.color).name} · Stl ${item.size}<br>` +
-    `Motiv: ${MOTIF_BY_ID[item.motif].name} · ${PLACEMENT_BY_ID[item.placement].name} (${PLACEMENT_BY_ID[item.placement].size})`;
+    `Motiv: ${MOTIF_BY_ID[item.motif].name} · ${PLACEMENT_BY_ID[item.placement].name}`;
 }
 
 function renderCartDrawer() {
@@ -77,7 +77,7 @@ function renderCartDrawer() {
     </div>`).join('');
   foot.innerHTML = `
     <div class="cart-total-row"><span>Summa</span><span>${cartTotal()} kr</span></div>
-    <div class="cart-fine">Fri frakt · tryck ingår i priset</div>
+    <div class="cart-fine">Frakt tillkommer · varje plagg trycks efter beställning</div>
     <button class="checkout-btn" id="toCheckoutBtn">Till kassan →</button>`;
 
   wrap.querySelectorAll('[data-cart-dec]').forEach(b => b.onclick = () => {
@@ -225,6 +225,7 @@ function route() {
   else if (parts[0] === 'storleksguide') renderSizeGuidePage();
   else if (parts[0] === 'leverans') renderDeliveryPage();
   else if (parts[0] === 'kontakt') renderContactPage();
+  else if (parts[0] === 'motiv') renderMotifPage();
   else renderHomePage();
 }
 window.addEventListener('hashchange', route);
@@ -233,7 +234,9 @@ window.addEventListener('hashchange', route);
 
 function renderHomePage() {
   /* Färgobjekt, inte hex — då plockar renderGarment() plaggets foto.
-     Priset hämtas ur PRODUCTS så korten aldrig hamnar i otakt med kassan. */
+     Korten visar plagget med tryck: det är produkten som säljs, inte
+     ett tomt plagg. Motivet är det som ligger först i MOTIFS. */
+  const featured = MOTIFS[0];
   const cats = [
     { id: 'tshirt', color: 'marin' },
     { id: 'longsleeve', color: 'svart' },
@@ -244,25 +247,46 @@ function renderHomePage() {
     color: colorById(c.id, c.color) || colorsFor(c.id)[0],
     note: `från ${priceFrom(c.id)} kr`,
   }));
+
+  const cardOpts = featured ? { motifId: featured.id, placementId: 'mage' } : {};
+  const designLink = id => featured
+    ? `#/produkt/${id}?motiv=${featured.id}&plats=mage`
+    : `#/produkt/${id}`;
+
   app.innerHTML = `
     <section class="hero">
       <div class="hero-kicker">Tryckt för hand · Levereras inom 3–5 dagar</div>
       <h1>Ditt motiv.<br><em>Dina</em> kläder.</h1>
-      <p class="lead">Välj plagg, färg och storlek. Välj motiv och bestäm exakt var trycket ska sitta — och se resultatet live innan du beställer.</p>
-      <a class="hero-cta" href="#/produkt/tshirt">Börja designa <span>→</span></a>
+      <p class="lead">Välj plagg, storlek och färg. Välj motiv och bestäm var trycket ska sitta — och se resultatet live innan du beställer.</p>
+      <a class="hero-cta" href="${designLink('hoodie')}">Börja designa <span>→</span></a>
     </section>
+
+    ${featured ? `
+    <section class="motif-banner">
+      <div class="motif-banner-inner">
+        <div class="motif-banner-text">
+          <span class="motif-banner-kicker">Motivet just nu</span>
+          <img class="motif-banner-mark" src="${featured.src}" alt="${featured.name}">
+          <p>Vårt första motiv. Tryck det på vilket plagg du vill, i den färg och storlek du vill.</p>
+          <a class="banner-cta" href="#/motiv">Se motivet <span>→</span></a>
+        </div>
+        <div class="motif-banner-art" aria-hidden="true">
+          ${renderGarment('hoodie', 'front', colorById('hoodie', 'graddvit'), cardOpts)}
+        </div>
+      </div>
+    </section>` : ''}
 
     <section class="category-section">
       <div class="section-head">
         <h2>Välj ditt plagg</h2>
         <span>${Object.keys(PRODUCTS).length} plagg · upp till ${
           Math.max(...Object.keys(PRODUCTS).map(id => colorsFor(id).length))
-        } färger · ${MOTIFS.length} motiv · ${PLACEMENTS.length} placeringar</span>
+        } färger · ${MOTIFS.length} ${MOTIFS.length === 1 ? 'motiv' : 'motiv'} · ${PLACEMENTS.length} placeringar</span>
       </div>
       <div class="category-grid">
         ${cats.map(c => `
-          <a class="category-card" href="#/produkt/${c.id}">
-            <div class="card-img">${renderGarment(c.id, 'front', c.color)}</div>
+          <a class="category-card" href="${designLink(c.id)}">
+            <div class="card-img">${renderGarment(c.id, 'front', c.color, cardOpts)}</div>
             <div class="card-body">
               <div>
                 <h3>${PRODUCTS[c.id].name}</h3>
@@ -278,18 +302,20 @@ function renderHomePage() {
       <div class="steps-inner">
         <div class="step-item">
           <div class="step-num">STEG 01</div>
-          <h4>Välj plagg &amp; färg</h4>
-          <p>T-shirt, långärmat, sweatshirt eller hoodie — i 12 noga utvalda färger, XS till 5XL.</p>
+          <h4>Välj plagg, storlek &amp; färg</h4>
+          <p>T-shirt, långärmat, sweatshirt eller hoodie — upp till ${
+            Math.max(...Object.keys(PRODUCTS).map(id => colorsFor(id).length))
+          } färger, XS till 5XL.</p>
         </div>
         <div class="step-item">
           <div class="step-num">STEG 02</div>
           <h4>Välj motiv</h4>
-          <p>25 handplockade motiv, tryckta för hand med slitstark och miljövänlig färg.</p>
+          <p>Färdiga motiv, tryckta för hand med slitstark och miljövänlig färg.</p>
         </div>
         <div class="step-item">
           <div class="step-num">STEG 03</div>
           <h4>Välj placering</h4>
-          <p>Hjärta 10×10 cm, mage 22×22 cm eller rygg 22×22 cm — du bestämmer.</p>
+          <p>Litet tryck på hjärtat, eller stort tryck på magen eller ryggen — du bestämmer.</p>
         </div>
         <div class="step-item">
           <div class="step-num">STEG 04</div>
@@ -298,6 +324,37 @@ function renderHomePage() {
         </div>
       </div>
     </section>`;
+}
+
+/* ------------------------- Motivsida ------------------------- */
+
+function renderMotifPage() {
+  app.innerHTML = `
+    <div class="info-page">
+      <div class="breadcrumb"><a href="#/">Hem</a> / Motiv</div>
+      <h1>Motiv</h1>
+      <p class="lead">Varje motiv är en riktig tryckfil, inte en skiss. Välj ett motiv
+      och lägg det på det plagg du vill.</p>
+
+      <div class="motif-page-grid">
+        ${MOTIFS.map(m => `
+          <article class="motif-page-card">
+            <div class="motif-page-art">
+              <img src="${m.src}" alt="${m.name}">
+            </div>
+            <h2>${m.name}</h2>
+            <div class="motif-page-links">
+              ${Object.keys(PRODUCTS).map(id =>
+                `<a href="#/produkt/${id}?motiv=${m.id}&plats=mage">${PRODUCTS[id].name}</a>`).join('')}
+            </div>
+          </article>`).join('')}
+      </div>
+
+      <div class="guide-tip">
+        <strong>Fler motiv är på väg.</strong> Vill du se ett särskilt motiv i sortimentet?
+        Skriv till <a href="mailto:hej@motiv.se">hej@motiv.se</a>.
+      </div>
+    </div>`;
 }
 
 /* ------------------------- Produktsida ------------------------- */
@@ -391,7 +448,8 @@ function renderProductPage(productId, params) {
             <div class="price-row">
               <span class="product-price" id="productPrice"></span>
               <span class="price-badges">
-                <span class="badge">Fri frakt</span>
+                <span class="badge">Tryckt för hand</span>
+                <span class="badge">3–5 dagar</span>
               </span>
             </div>
             <p class="price-note" id="priceNote"></p>
@@ -508,10 +566,10 @@ function renderProductPage(productId, params) {
   plGrid.innerHTML = PLACEMENTS.map(p => `
     <button class="placement-card ${s.placement === p.id ? 'selected' : ''}" data-placement="${p.id}"
       aria-pressed="${s.placement === p.id}"
-      aria-label="Placering: ${p.name}, ${p.size}, tryck ${p.price} kronor. ${p.desc}">
+      aria-label="Placering: ${p.name}, ${p.label.toLowerCase()}, ${p.price} kronor. ${p.desc}">
       <div class="pl-icon" aria-hidden="true">${plIcon(p.id)}</div>
       <h4>${p.name}</h4>
-      <small>${p.size}</small>
+      <small>${p.label}</small>
       <span class="pl-price">+ ${p.price} kr</span>
     </button>`).join('');
   plGrid.querySelectorAll('[data-placement]').forEach(b => b.onclick = () => {
@@ -591,7 +649,7 @@ function renderProductPage(productId, params) {
       s.size ? `${s.size} · ${s.qty} st` : '';
     document.getElementById('motifValue').textContent = s.motif ? MOTIF_BY_ID[s.motif].name : '';
     document.getElementById('placementValue').textContent =
-      s.placement ? `${PLACEMENT_BY_ID[s.placement].name} · ${PLACEMENT_BY_ID[s.placement].size}` : '';
+      s.placement ? `${PLACEMENT_BY_ID[s.placement].name} · ${PLACEMENT_BY_ID[s.placement].label.toLowerCase()}` : '';
 
     document.getElementById('stepSize').classList.toggle('done', !!s.size);
     document.getElementById('stepMotif').classList.toggle('done', !!s.motif);
@@ -622,7 +680,7 @@ function renderProductPage(productId, params) {
     document.getElementById('productPrice').textContent =
       s.placement ? `${unit} kr` : `Från ${priceFrom(productId)} kr`;
     document.getElementById('priceNote').textContent = pl
-      ? `Plagget ${product.price} kr + tryck ${pl.size} ${pl.price} kr`
+      ? `Plagget ${product.price} kr + ${pl.label.toLowerCase()} ${pl.price} kr`
       : `Plagget ${product.price} kr + tryck från ${Math.min(...PLACEMENTS.map(p => p.price))} kr`;
 
     /* knapp */
@@ -812,9 +870,14 @@ function renderCheckoutPage() {
             </div>`).join('')}
           <div class="summary-rows">
             <div><span>Delsumma</span><span>${total} kr</span></div>
-            <div><span>Frakt</span><span>0 kr</span></div>
-            <div class="total"><span>Totalt</span><span>${total} kr</span></div>
+            <div><span>Frakt</span><span>${
+              shippingCost() === null ? 'Tillkommer' : `${shippingCost()} kr`
+            }</span></div>
+            <div class="total"><span>Totalt</span><span>${orderTotal(total)} kr</span></div>
           </div>
+          ${shippingCost() === null
+            ? '<p class="summary-fine">Fraktkostnaden är inte satt än och ingår inte i summan.</p>'
+            : ''}
         </div>
       </div>
     </div>`;
@@ -960,26 +1023,28 @@ function renderDeliveryPage() {
           <dl class="info-list">
             <dt>Tryck &amp; packning</dt><dd>1–2 arbetsdagar</dd>
             <dt>Frakt inom Sverige</dt><dd>2–3 arbetsdagar</dd>
-            <dt>Fraktkostnad</dt><dd>0 kr — fri frakt på alla ordrar</dd>
+            <dt>Fraktkostnad</dt><dd>Tillkommer och visas i kassan</dd>
             <dt>Spårning</dt><dd>Länk skickas via e-post när paketet lämnar oss</dd>
           </dl>
         </section>
 
         <section class="info-card">
-          <h2>Retur</h2>
-          <p>Du har <strong>14 dagars ångerrätt</strong> från att du tagit emot paketet.
-          Plagget ska vara oanvänt och otvättat, med etiketter kvar.</p>
-          <p>Hör av dig till <a href="mailto:hej@motiv.se">hej@motiv.se</a> med ditt
-          ordernummer så skickar vi en returfraktsedel.</p>
-          <p class="info-fine">Pengarna är tillbaka på ditt konto inom 14 dagar från att
-          vi tagit emot returen.</p>
+          <h2>Ångerrätt</h2>
+          <p>Plaggen tillverkas <strong>efter din beställning</strong> — du väljer plagg,
+          färg, storlek, motiv och placering, och trycket görs för just din order.
+          Därför gäller <strong>ingen ångerrätt</strong>. Det följer undantaget i
+          distansavtalslagen för varor som tillverkats enligt kundens anvisningar
+          eller fått en tydlig personlig prägel.</p>
+          <p class="info-fine">Kontrollera storleken i storleksguiden innan du beställer —
+          byte av storlek är inte möjligt i efterhand.</p>
         </section>
 
         <section class="info-card">
           <h2>Om något blivit fel</h2>
-          <p>Har trycket blivit snett, plagget skadat eller fick du fel storlek levererad?
-          Skicka en bild till <a href="mailto:hej@motiv.se">hej@motiv.se</a> så gör vi om
-          plagget kostnadsfritt — du behöver inte skicka tillbaka det första.</p>
+          <p>Reklamationsrätten gäller såklart. Har trycket blivit snett, plagget skadat
+          eller fick du något annat än du beställde? Skicka en bild till
+          <a href="mailto:hej@motiv.se">hej@motiv.se</a> så gör vi om plagget
+          kostnadsfritt — du behöver inte skicka tillbaka det första.</p>
         </section>
       </div>
 

@@ -29,16 +29,20 @@ python3 -m http.server 8000
    fotograferade färger, de andra tre fyra var.
 3. **Motiv** — knapp som öppnar motivgalleriet. Motiven är riktiga
    tryckfiler med alfakanal, inte ritade platshållare.
-4. **Placering** — Hjärta 10 × 10 cm, Mage 20 × 20 cm eller Rygg 20 × 20 cm.
-   Tryckytan är prissatt för sig, så priset uppdateras när placeringen byts.
+4. **Placering** — litet tryck på hjärtat, eller stort tryck på magen eller
+   ryggen. Tryckytan är prissatt för sig, så priset uppdateras när placeringen
+   byts. Centimetermåtten visas inte för kunden.
 5. **Live-förhandsvisning** — plagget renderas i vald färg med valt motiv på
    vald plats (väljer man rygg vänds plagget automatiskt till baksidan).
 6. **Varukorg → Kassa** — kunduppgifter och betalning i Klarna-stil
    (Betala nu / Betala om 30 dagar / Delbetala). Demobetalning — ingen
    riktig transaktion sker.
 
-Därtill finns **Storleksguide**, **Leverans & retur** och **Kontakta oss**
-under `#/storleksguide`, `#/leverans` och `#/kontakt`.
+Därtill finns **Motiv** (`#/motiv`), **Storleksguide**, **Leverans & retur**
+och **Kontakta oss** under `#/storleksguide`, `#/leverans` och `#/kontakt`.
+
+Startsidan visar plaggen med tryck på — det är produkten som säljs, inte ett
+tomt plagg — och en motivbanner med ATTYD-loggan mot marinblått.
 
 **Designen går att dela.** Valen ligger i adressfältet, så en länk som
 `#/produkt/hoodie?farg=antracit&motiv=tiger&plats=rygg` öppnar exakt det plagget
@@ -81,6 +85,12 @@ valen, inte priset.
 
 Grundpriserna är leverantörens preliminära priser och innehåller ingen
 marginal. Höj dem i `PRODUCTS` när kalkylen är klar; inget annat behöver ändras.
+
+Frakten är inte fastställd: `SHIPPING.price` är `null` och kassan skriver
+"Tillkommer". Sätt ett tal där så räknas frakten in i totalen.
+
+Ångerrätt gäller inte — plaggen tillverkas efter kundens val av färg, storlek,
+motiv och placering. Reklamationsrätten gäller som vanligt.
 
 ## Klarna på riktigt
 

@@ -261,7 +261,7 @@ function _sweatshirtDetails(side, uid, color) {
    verkliga bröstvidden i storlek M (SIZE_CHART) ger det hur många
    enheter en centimeter motsvarar — olika per plagg, eftersom en
    oversized hoodie är bredare än en t-shirt. Därför täcker ett
-   22 × 22-tryck en mindre del av hoodien, precis som på riktigt. */
+   stort tryck en mindre del av hoodien, precis som på riktigt. */
 const TORSO_UNITS = 296;
 
 const UNITS_PER_CM = {

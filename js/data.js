@@ -26,13 +26,16 @@ const COLORS = [
 
    `price` är vad trycket kostar utöver plagget. Leverantören prissätter
    de två tryckytorna var för sig, så priset på sidan byggs som
-   plagg + tryck — se priceFor() längre ner. */
+   plagg + tryck — se priceFor() längre ner.
+
+   Centimetermåtten står medvetet inte i UI:t. `cm` finns bara för att
+   rita trycket i rätt skala; kunden väljer litet eller stort tryck. */
 const PLACEMENTS = [
-  { id: 'hjarta', name: 'Hjärta', size: '10 × 10 cm', cm: 10, price: 75, side: 'front',
+  { id: 'hjarta', name: 'Hjärta', label: 'Litet tryck', cm: 10, price: 75, side: 'front',
     desc: 'Diskret tryck på vänster bröst.' },
-  { id: 'mage',   name: 'Mage',   size: '20 × 20 cm', cm: 20, price: 150, side: 'front',
+  { id: 'mage',   name: 'Mage',   label: 'Stort tryck', cm: 20, price: 150, side: 'front',
     desc: 'Stort tryck mitt på framsidan.' },
-  { id: 'rygg',   name: 'Rygg',   size: '20 × 20 cm', cm: 20, price: 150, side: 'back',
+  { id: 'rygg',   name: 'Rygg',   label: 'Stort tryck', cm: 20, price: 150, side: 'back',
     desc: 'Stort tryck mitt på ryggen.' },
 ];
 
@@ -125,7 +128,7 @@ const LONGSLEEVE_COLORS = [
 const SWEATSHIRT_COLORS = [
   { id: 'gramelerad', name: 'Gråmelerad', hex: '#b4b4b4' },
   { id: 'stalgra',    name: 'Stålgrå',    hex: '#5f5f5f' },
-  { id: 'antracit',   name: 'Antracit',   hex: '#3f3f3f' },
+  { id: 'svart',      name: 'Svart',      hex: '#3f3f3f' },
   { id: 'marin',      name: 'Marinblå',   hex: '#2b3346' },
 ];
 
@@ -233,6 +236,17 @@ function printPrice(placementId) {
 function priceFor(productId, placementId) {
   return PRODUCTS[productId].price + printPrice(placementId);
 }
+
+/* Frakten är inte fastställd än. `price: null` betyder just det: kassan
+   skriver "Tillkommer" i stället för en påhittad summa. Sätt ett tal här
+   när priset är klart, så räknas det in i totalen automatiskt. */
+const SHIPPING = { name: 'Frakt', price: null };
+
+/** Fraktkostnaden, eller null så länge den inte är satt. */
+function shippingCost() { return SHIPPING.price; }
+
+/** Summan kunden betalar — varor plus frakt när frakten är känd. */
+function orderTotal(itemsTotal) { return itemsTotal + (shippingCost() || 0); }
 
 /** Lägsta pris plagget kan hamna på — plagg + billigaste trycket. */
 function priceFrom(productId) {
