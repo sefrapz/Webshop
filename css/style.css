@@ -853,6 +853,8 @@ body.no-scroll { overflow: hidden; }
   .category-section { padding: 20px 20px 60px; }
   .category-grid { grid-template-columns: 1fr; }
   .steps-inner { grid-template-columns: 1fr; }
+  /* Rubrik och statistik får inte klämmas ihop på smal skärm */
+  .section-head { flex-direction: column; align-items: flex-start; gap: 6px; }
   .motif-banner-inner { grid-template-columns: 1fr; }
   .motif-banner-text { padding: 34px 26px 8px; text-align: center; }
   .motif-banner-mark { margin-inline: auto; }
